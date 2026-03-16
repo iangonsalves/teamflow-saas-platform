@@ -6,6 +6,7 @@ import {
 } from '@nestjs/common';
 import { WorkspaceRole } from '@prisma/client';
 import { AuthenticatedUser } from '../auth/types/authenticated-user.type';
+import { AuditLogsService } from '../audit-logs/audit-logs.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { AddWorkspaceMemberDto } from './dto/add-workspace-member.dto';
 import { CreateWorkspaceDto } from './dto/create-workspace.dto';
@@ -17,6 +18,7 @@ export class WorkspacesService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly workspaceAccessService: WorkspaceAccessService,
+    private readonly auditLogsService: AuditLogsService,
   ) {}
 
   async createWorkspace(
@@ -40,6 +42,20 @@ export class WorkspacesService {
           role: WorkspaceRole.OWNER,
         },
       });
+
+      await this.auditLogsService.logEvent(
+        {
+          workspaceId: createdWorkspace.id,
+          actorUserId: user.sub,
+          entityType: 'workspace',
+          entityId: createdWorkspace.id,
+          action: 'workspace.created',
+          metadata: {
+            name,
+          },
+        },
+        tx,
+      );
 
       return tx.workspace.findUniqueOrThrow({
         where: { id: createdWorkspace.id },
@@ -179,7 +195,7 @@ export class WorkspacesService {
       throw new ForbiddenException('Admins cannot assign the owner role.');
     }
 
-    return this.prisma.workspaceMember.create({
+    const membership = await this.prisma.workspaceMember.create({
       data: {
         workspaceId,
         userId: targetUser.id,
@@ -195,6 +211,21 @@ export class WorkspacesService {
         },
       },
     });
+
+    await this.auditLogsService.logEvent({
+      workspaceId,
+      actorUserId: user.sub,
+      entityType: 'workspace_member',
+      entityId: membership.id,
+      action: 'workspace.member_added',
+      metadata: {
+        memberUserId: targetUser.id,
+        memberEmail: targetUser.email,
+        role: addWorkspaceMemberDto.role,
+      },
+    });
+
+    return membership;
   }
 
   async updateWorkspaceMemberRole(
@@ -240,7 +271,7 @@ export class WorkspacesService {
       throw new ForbiddenException('Admins cannot assign the owner role.');
     }
 
-    return this.prisma.workspaceMember.update({
+    const updatedMembership = await this.prisma.workspaceMember.update({
       where: {
         workspaceId_userId: {
           workspaceId,
@@ -260,6 +291,20 @@ export class WorkspacesService {
         },
       },
     });
+
+    await this.auditLogsService.logEvent({
+      workspaceId,
+      actorUserId: user.sub,
+      entityType: 'workspace_member',
+      entityId: updatedMembership.id,
+      action: 'workspace.member_role_updated',
+      metadata: {
+        memberUserId,
+        role: updateWorkspaceMemberRoleDto.role,
+      },
+    });
+
+    return updatedMembership;
   }
 
   async removeWorkspaceMember(
@@ -295,12 +340,25 @@ export class WorkspacesService {
       throw new ForbiddenException('Admins cannot remove other admins.');
     }
 
+    const removedMembershipId = targetMembership.id;
+
     await this.prisma.workspaceMember.delete({
       where: {
         workspaceId_userId: {
           workspaceId,
           userId: memberUserId,
         },
+      },
+    });
+
+    await this.auditLogsService.logEvent({
+      workspaceId,
+      actorUserId: user.sub,
+      entityType: 'workspace_member',
+      entityId: removedMembershipId,
+      action: 'workspace.member_removed',
+      metadata: {
+        memberUserId,
       },
     });
 

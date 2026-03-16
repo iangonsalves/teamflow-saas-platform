@@ -5,6 +5,7 @@ import {
 } from '@nestjs/common';
 import { WorkspaceRole } from '@prisma/client';
 import type { AuthenticatedUser } from '../auth/types/authenticated-user.type';
+import { AuditLogsService } from '../audit-logs/audit-logs.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { WorkspaceAccessService } from '../workspaces/workspace-access.service';
 import { CreateProjectDto } from './dto/create-project.dto';
@@ -14,6 +15,7 @@ export class ProjectsService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly workspaceAccessService: WorkspaceAccessService,
+    private readonly auditLogsService: AuditLogsService,
   ) {}
 
   async createProject(
@@ -37,7 +39,7 @@ export class ProjectsService {
 
     await this.workspaceAccessService.assertWorkspaceExists(workspaceId);
 
-    return this.prisma.project.create({
+    const project = await this.prisma.project.create({
       data: {
         workspaceId,
         name: createProjectDto.name.trim(),
@@ -54,6 +56,19 @@ export class ProjectsService {
         },
       },
     });
+
+    await this.auditLogsService.logEvent({
+      workspaceId,
+      actorUserId: user.sub,
+      entityType: 'project',
+      entityId: project.id,
+      action: 'project.created',
+      metadata: {
+        name: project.name,
+      },
+    });
+
+    return project;
   }
 
   async listProjects(workspaceId: string, user: AuthenticatedUser) {
