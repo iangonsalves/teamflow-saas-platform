@@ -23,6 +23,7 @@ async function bootstrap() {
     .setTitle('TeamFlow API')
     .setDescription('API documentation for the TeamFlow SaaS platform.')
     .setVersion('0.1.0')
+    .addBearerAuth()
     .build();
   const document = SwaggerModule.createDocument(app, swaggerConfig);
   SwaggerModule.setup('docs', app, document);
