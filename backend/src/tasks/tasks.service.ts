@@ -5,6 +5,7 @@ import {
 } from '@nestjs/common';
 import { TaskStatus, WorkspaceRole } from '@prisma/client';
 import type { AuthenticatedUser } from '../auth/types/authenticated-user.type';
+import { AuditLogsService } from '../audit-logs/audit-logs.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { WorkspaceAccessService } from '../workspaces/workspace-access.service';
 import { CreateTaskDto } from './dto/create-task.dto';
@@ -17,6 +18,7 @@ export class TasksService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly workspaceAccessService: WorkspaceAccessService,
+    private readonly auditLogsService: AuditLogsService,
   ) {}
 
   async createTask(
@@ -58,7 +60,7 @@ export class TasksService {
       await this.assertWorkspaceMember(workspaceId, createTaskDto.assignedTo);
     }
 
-    return this.prisma.task.create({
+    const task = await this.prisma.task.create({
       data: {
         projectId,
         title: createTaskDto.title.trim(),
@@ -70,6 +72,21 @@ export class TasksService {
       },
       include: this.taskInclude,
     });
+
+    await this.auditLogsService.logEvent({
+      workspaceId,
+      actorUserId: user.sub,
+      entityType: 'task',
+      entityId: task.id,
+      action: 'task.created',
+      metadata: {
+        title: task.title,
+        projectId,
+        assignedTo: task.assignedTo,
+      },
+    });
+
+    return task;
   }
 
   async listTasks(
@@ -159,13 +176,27 @@ export class TasksService {
       );
     }
 
-    return this.prisma.task.update({
+    const updatedTask = await this.prisma.task.update({
       where: { id: task.id },
       data: {
         status: updateTaskStatusDto.status,
       },
       include: this.taskInclude,
     });
+
+    await this.auditLogsService.logEvent({
+      workspaceId,
+      actorUserId: user.sub,
+      entityType: 'task',
+      entityId: updatedTask.id,
+      action: 'task.status_updated',
+      metadata: {
+        previousStatus: task.status,
+        nextStatus: updateTaskStatusDto.status,
+      },
+    });
+
+    return updatedTask;
   }
 
   async updateTaskAssignee(
@@ -195,13 +226,27 @@ export class TasksService {
       await this.assertWorkspaceMember(workspaceId, updateTaskAssigneeDto.assignedTo);
     }
 
-    return this.prisma.task.update({
+    const updatedTask = await this.prisma.task.update({
       where: { id: task.id },
       data: {
         assignedTo: updateTaskAssigneeDto.assignedTo ?? null,
       },
       include: this.taskInclude,
     });
+
+    await this.auditLogsService.logEvent({
+      workspaceId,
+      actorUserId: user.sub,
+      entityType: 'task',
+      entityId: updatedTask.id,
+      action: 'task.assignee_updated',
+      metadata: {
+        previousAssignedTo: task.assignedTo,
+        nextAssignedTo: updateTaskAssigneeDto.assignedTo ?? null,
+      },
+    });
+
+    return updatedTask;
   }
 
   private async assertProjectInWorkspace(workspaceId: string, projectId: string) {

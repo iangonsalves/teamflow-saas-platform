@@ -2,6 +2,7 @@ import { ForbiddenException, NotFoundException } from '@nestjs/common';
 import { WorkspaceRole } from '@prisma/client';
 import { Test, TestingModule } from '@nestjs/testing';
 import type { AuthenticatedUser } from '../auth/types/authenticated-user.type';
+import { AuditLogsService } from '../audit-logs/audit-logs.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { WorkspaceAccessService } from '../workspaces/workspace-access.service';
 import { ProjectsService } from './projects.service';
@@ -19,6 +20,9 @@ describe('ProjectsService', () => {
   const workspaceAccessService = {
     assertWorkspaceExists: jest.fn(),
     getMembershipOrThrow: jest.fn(),
+  };
+  const auditLogsService = {
+    logEvent: jest.fn(),
   };
   const currentUser: AuthenticatedUser = {
     sub: 'user-1',
@@ -39,6 +43,10 @@ describe('ProjectsService', () => {
         {
           provide: WorkspaceAccessService,
           useValue: workspaceAccessService,
+        },
+        {
+          provide: AuditLogsService,
+          useValue: auditLogsService,
         },
       ],
     }).compile();
