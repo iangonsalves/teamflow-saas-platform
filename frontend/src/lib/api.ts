@@ -32,3 +32,17 @@ export async function apiRequest<T>(
 
   return response.json() as Promise<T>;
 }
+
+export async function apiRequestWithToken<T>(
+  path: string,
+  token: string,
+  options?: RequestInit,
+): Promise<T> {
+  return apiRequest<T>(path, {
+    ...options,
+    headers: {
+      Authorization: `Bearer ${token}`,
+      ...(options?.headers ?? {}),
+    },
+  });
+}

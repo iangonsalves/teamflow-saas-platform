@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 export default function Home() {
   return (
     <main className="min-h-screen bg-[radial-gradient(circle_at_top_left,_rgba(244,162,97,0.35),_transparent_30%),radial-gradient(circle_at_bottom_right,_rgba(42,157,143,0.28),_transparent_30%),linear-gradient(180deg,_#f8f4ec_0%,_#f4efe5_100%)] text-slate-900">
@@ -26,18 +28,24 @@ export default function Home() {
             </p>
 
             <div className="flex flex-col gap-3 sm:flex-row">
-              <a
+              <Link
                 className="inline-flex items-center justify-center rounded-full bg-slate-900 px-6 py-3 text-sm font-medium text-white transition hover:bg-slate-700"
                 href="/register"
               >
                 Create account
-              </a>
-              <a
+              </Link>
+              <Link
                 className="inline-flex items-center justify-center rounded-full border border-slate-900/15 bg-white/70 px-6 py-3 text-sm font-medium text-slate-900 transition hover:bg-white"
                 href="/login"
               >
                 Sign in
-              </a>
+              </Link>
+              <Link
+                className="inline-flex items-center justify-center rounded-full border border-slate-900/15 bg-[#e7f3f0] px-6 py-3 text-sm font-medium text-slate-900 transition hover:bg-[#d9ece7]"
+                href="/dashboard"
+              >
+                View dashboard
+              </Link>
             </div>
           </div>
 
