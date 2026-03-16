@@ -5,6 +5,7 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { PrismaModule } from './prisma/prisma.module';
 import { ProjectsModule } from './projects/projects.module';
+import { TasksModule } from './tasks/tasks.module';
 import { WorkspacesModule } from './workspaces/workspaces.module';
 
 @Module({
@@ -13,6 +14,7 @@ import { WorkspacesModule } from './workspaces/workspaces.module';
     PrismaModule,
     AuthModule,
     ProjectsModule,
+    TasksModule,
     WorkspacesModule,
   ],
   controllers: [AppController],
