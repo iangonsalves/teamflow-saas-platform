@@ -46,7 +46,7 @@ export function AuthForm({ mode }: AuthFormProps) {
       persistAuthSession(payload);
 
       startTransition(() => {
-        router.push("/");
+        router.push("/dashboard");
       });
     } catch (error) {
       setErrorMessage(

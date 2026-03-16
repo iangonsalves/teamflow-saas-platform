@@ -37,3 +37,26 @@ export function getAccessToken() {
 
   return window.localStorage.getItem(accessTokenKey);
 }
+
+export function getStoredUser(): AuthUser | null {
+  if (typeof window === "undefined") {
+    return null;
+  }
+
+  const rawUser = window.localStorage.getItem(userKey);
+
+  if (!rawUser) {
+    return null;
+  }
+
+  try {
+    return JSON.parse(rawUser) as AuthUser;
+  } catch {
+    clearAuthSession();
+    return null;
+  }
+}
+
+export function hasAuthSession() {
+  return Boolean(getAccessToken());
+}
