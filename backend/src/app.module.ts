@@ -4,6 +4,7 @@ import { AuthModule } from './auth/auth.module';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { PrismaModule } from './prisma/prisma.module';
+import { ProjectsModule } from './projects/projects.module';
 import { WorkspacesModule } from './workspaces/workspaces.module';
 
 @Module({
@@ -11,6 +12,7 @@ import { WorkspacesModule } from './workspaces/workspaces.module';
     ConfigModule.forRoot({ isGlobal: true }),
     PrismaModule,
     AuthModule,
+    ProjectsModule,
     WorkspacesModule,
   ],
   controllers: [AppController],
