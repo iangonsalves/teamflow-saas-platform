@@ -36,6 +36,17 @@ export class BillingController {
 
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
+  @Get('workspaces/:workspaceId/billing/invoices')
+  @ApiOperation({ summary: 'List Stripe invoices for a workspace' })
+  listInvoices(
+    @Param('workspaceId') workspaceId: string,
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.billingService.listInvoices(workspaceId, user);
+  }
+
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
   @Post('workspaces/:workspaceId/billing/checkout-session')
   @ApiOperation({ summary: 'Create a Stripe checkout session for a workspace plan' })
   createCheckoutSession(
