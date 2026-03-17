@@ -54,6 +54,10 @@ export function DashboardShell() {
   const [submittingProject, setSubmittingProject] = useState(false);
   const [submittingTask, setSubmittingTask] = useState(false);
   const [updatingTaskId, setUpdatingTaskId] = useState<string | null>(null);
+  const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
+  const [editTitle, setEditTitle] = useState("");
+  const [editDescription, setEditDescription] = useState("");
+  const [editPriority, setEditPriority] = useState<TaskPriority>("MEDIUM");
 
   const canManageWorkspace =
     selectedWorkspaceRole === "OWNER" || selectedWorkspaceRole === "ADMIN";
@@ -393,11 +397,100 @@ export function DashboardShell() {
     }
   }
 
+  async function handleTaskAssigneeUpdate(taskId: string, assigneeId: string) {
+    if (!token || !selectedWorkspaceId || !selectedProjectId) {
+      return;
+    }
+
+    setUpdatingTaskId(taskId);
+    setTaskActionMessage(null);
+    setErrorMessage(null);
+
+    try {
+      const updatedTask = await apiRequestWithToken<TaskSummary>(
+        `/workspaces/${selectedWorkspaceId}/projects/${selectedProjectId}/tasks/${taskId}/assignee`,
+        token,
+        {
+          method: "PATCH",
+          body: JSON.stringify({
+            assignedTo: assigneeId || null,
+          }),
+        },
+      );
+
+      setTasks((currentTasks) =>
+        currentTasks.map((task) => (task.id === taskId ? updatedTask : task)),
+      );
+      setTaskActionMessage(
+        `Task "${updatedTask.title}" assigned to ${updatedTask.assignee?.name ?? "nobody"}.`,
+      );
+    } catch (error) {
+      setErrorMessage(
+        error instanceof Error ? error.message : "Failed to update assignee.",
+      );
+    } finally {
+      setUpdatingTaskId(null);
+    }
+  }
+
+  function handleStartEditingTask(task: TaskSummary) {
+    setEditingTaskId(task.id);
+    setEditTitle(task.title);
+    setEditDescription(task.description ?? "");
+    setEditPriority(task.priority);
+    setTaskActionMessage(null);
+  }
+
+  function handleCancelEditingTask() {
+    setEditingTaskId(null);
+    setEditTitle("");
+    setEditDescription("");
+    setEditPriority("MEDIUM");
+  }
+
+  async function handleSaveTaskEdit(taskId: string) {
+    if (!token || !selectedWorkspaceId || !selectedProjectId) {
+      return;
+    }
+
+    setUpdatingTaskId(taskId);
+    setTaskActionMessage(null);
+    setErrorMessage(null);
+
+    try {
+      const updatedTask = await apiRequestWithToken<TaskSummary>(
+        `/workspaces/${selectedWorkspaceId}/projects/${selectedProjectId}/tasks/${taskId}`,
+        token,
+        {
+          method: "PATCH",
+          body: JSON.stringify({
+            title: editTitle,
+            description: editDescription,
+            priority: editPriority,
+          }),
+        },
+      );
+
+      setTasks((currentTasks) =>
+        currentTasks.map((task) => (task.id === taskId ? updatedTask : task)),
+      );
+      setTaskActionMessage(`Task "${updatedTask.title}" updated.`);
+      handleCancelEditingTask();
+    } catch (error) {
+      setErrorMessage(
+        error instanceof Error ? error.message : "Failed to update task details.",
+      );
+    } finally {
+      setUpdatingTaskId(null);
+    }
+  }
+
   function handleWorkspaceChange(workspaceId: string) {
     setSelectedWorkspaceId(workspaceId);
     setSelectedProjectId(null);
     setTaskActionMessage(null);
     setProjectActionMessage(null);
+    handleCancelEditingTask();
   }
 
   function handleLogout() {
@@ -476,10 +569,25 @@ export function DashboardShell() {
               onTaskAssigneeChange={setTaskAssignee}
               onTaskDescriptionChange={setTaskDescription}
               onTaskPriorityChange={setTaskPriority}
+              onEditDescriptionChange={setEditDescription}
+              onEditPriorityChange={setEditPriority}
+              onEditTitleChange={setEditTitle}
+              onCancelEditingTask={handleCancelEditingTask}
+              onSaveTaskEdit={(taskId) => {
+                void handleSaveTaskEdit(taskId);
+              }}
+              onStartEditingTask={handleStartEditingTask}
+              onTaskAssigneeUpdate={(taskId, assigneeId) => {
+                void handleTaskAssigneeUpdate(taskId, assigneeId);
+              }}
               onTaskStatusChange={(taskId, status) => {
                 void handleTaskStatusChange(taskId, status);
               }}
               onTaskTitleChange={setTaskTitle}
+              editDescription={editDescription}
+              editPriority={editPriority}
+              editingTaskId={editingTaskId}
+              editTitle={editTitle}
               projectLoading={projectLoading}
               selectedProjectId={selectedProjectId}
               selectedProjectName={selectedProject?.name ?? null}

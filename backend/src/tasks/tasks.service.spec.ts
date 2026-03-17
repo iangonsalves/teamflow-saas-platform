@@ -5,6 +5,7 @@ import type { AuthenticatedUser } from '../auth/types/authenticated-user.type';
 import { AuditLogsService } from '../audit-logs/audit-logs.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { WorkspaceAccessService } from '../workspaces/workspace-access.service';
+import { UpdateTaskDto } from './dto/update-task.dto';
 import { TasksService } from './tasks.service';
 
 describe('TasksService', () => {
@@ -172,6 +173,43 @@ describe('TasksService', () => {
     ).resolves.toEqual({
       id: 'task-1',
       status: TaskStatus.DONE,
+    });
+  });
+
+  it('allows owners to update task details', async () => {
+    workspaceAccessService.getMembershipOrThrow.mockResolvedValue({
+      role: WorkspaceRole.OWNER,
+    });
+    prismaService.task.findFirst.mockResolvedValue({
+      id: 'task-1',
+      title: 'Old title',
+      description: 'Old description',
+      priority: 'MEDIUM',
+    });
+    prismaService.task.update.mockResolvedValue({
+      id: 'task-1',
+      title: 'New title',
+      description: 'New description',
+      priority: 'HIGH',
+    });
+
+    await expect(
+      service.updateTask(
+        'workspace-1',
+        'project-1',
+        'task-1',
+        {
+          title: ' New title ',
+          description: ' New description ',
+          priority: 'HIGH',
+        } as UpdateTaskDto,
+        currentUser,
+      ),
+    ).resolves.toEqual({
+      id: 'task-1',
+      title: 'New title',
+      description: 'New description',
+      priority: 'HIGH',
     });
   });
 

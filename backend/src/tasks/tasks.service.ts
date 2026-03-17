@@ -11,6 +11,7 @@ import { WorkspaceAccessService } from '../workspaces/workspace-access.service';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { ListTasksQueryDto } from './dto/list-tasks-query.dto';
 import { UpdateTaskAssigneeDto } from './dto/update-task-assignee.dto';
+import { UpdateTaskDto } from './dto/update-task.dto';
 import { UpdateTaskStatusDto } from './dto/update-task-status.dto';
 
 @Injectable()
@@ -193,6 +194,62 @@ export class TasksService {
       metadata: {
         previousStatus: task.status,
         nextStatus: updateTaskStatusDto.status,
+      },
+    });
+
+    return updatedTask;
+  }
+
+  async updateTask(
+    workspaceId: string,
+    projectId: string,
+    taskId: string,
+    updateTaskDto: UpdateTaskDto,
+    user: AuthenticatedUser,
+  ) {
+    const membership = await this.workspaceAccessService.getMembershipOrThrow(
+      workspaceId,
+      user.sub,
+    );
+
+    if (
+      membership.role !== WorkspaceRole.OWNER &&
+      membership.role !== WorkspaceRole.ADMIN
+    ) {
+      throw new ForbiddenException(
+        'Only workspace owners and admins can edit task details.',
+      );
+    }
+
+    const task = await this.findTaskOrThrow(projectId, taskId);
+    const updatedTask = await this.prisma.task.update({
+      where: { id: task.id },
+      data: {
+        title: updateTaskDto.title?.trim() ?? undefined,
+        description:
+          updateTaskDto.description === undefined
+            ? undefined
+            : updateTaskDto.description === null
+              ? null
+              : (updateTaskDto.description.trim() || null),
+        priority: updateTaskDto.priority ?? undefined,
+      },
+      include: this.taskInclude,
+    });
+
+    await this.auditLogsService.logEvent({
+      workspaceId,
+      actorUserId: user.sub,
+      entityType: 'task',
+      entityId: updatedTask.id,
+      action: 'task.updated',
+      metadata: {
+        previousTitle: task.title,
+        nextTitle: updatedTask.title,
+        previousDescription: task.description,
+        nextDescription: updatedTask.description,
+        previousPriority: task.priority,
+        nextPriority: updatedTask.priority,
       },
     });
 
