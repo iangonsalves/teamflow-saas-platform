@@ -10,6 +10,7 @@ import {
   getStoredUser,
   type AuthUser,
 } from "@/lib/auth-storage";
+import { InvitationsPanel } from "./invitations-panel";
 
 type WorkspaceSummary = {
   id: string;
@@ -42,6 +43,8 @@ type TasksResponse = {
   };
 };
 
+type WorkspaceRole = "OWNER" | "ADMIN" | "MEMBER";
+
 type AuthMeResponse = {
   user: {
     sub: string;
@@ -56,6 +59,9 @@ export function DashboardShell() {
   const [workspaces, setWorkspaces] = useState<WorkspaceSummary[]>([]);
   const [projects, setProjects] = useState<ProjectSummary[]>([]);
   const [tasks, setTasks] = useState<TaskSummary[]>([]);
+  const [currentWorkspaceRole, setCurrentWorkspaceRole] = useState<WorkspaceRole | null>(
+    null,
+  );
   const [loading, setLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
@@ -104,10 +110,15 @@ export function DashboardShell() {
 
         const firstWorkspace = workspaceItems[0];
         if (!firstWorkspace) {
+          setCurrentWorkspaceRole(null);
           setProjects([]);
           setTasks([]);
           return;
         }
+
+        setCurrentWorkspaceRole(
+          (firstWorkspace.members[0]?.role as WorkspaceRole | undefined) ?? null,
+        );
 
         const projectItems = await apiRequestWithToken<ProjectSummary[]>(
           `/workspaces/${firstWorkspace.id}/projects`,
@@ -253,6 +264,14 @@ export function DashboardShell() {
                 <p className="mt-1 text-sm text-slate-300">{user?.email}</p>
               </div>
             </section>
+
+            <InvitationsPanel
+              canManage={
+                currentWorkspaceRole === "OWNER" || currentWorkspaceRole === "ADMIN"
+              }
+              token={getAccessToken()}
+              workspaceId={workspaces[0]?.id ?? null}
+            />
           </div>
 
           <div className="space-y-6">
