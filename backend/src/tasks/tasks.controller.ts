@@ -15,6 +15,7 @@ import type { AuthenticatedUser } from '../auth/types/authenticated-user.type';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { ListTasksQueryDto } from './dto/list-tasks-query.dto';
 import { UpdateTaskAssigneeDto } from './dto/update-task-assignee.dto';
+import { UpdateTaskDto } from './dto/update-task.dto';
 import { UpdateTaskStatusDto } from './dto/update-task-status.dto';
 import { TasksService } from './tasks.service';
 
@@ -61,6 +62,24 @@ export class TasksController {
     @CurrentUser() user: AuthenticatedUser,
   ) {
     return this.tasksService.getTaskById(workspaceId, projectId, taskId, user);
+  }
+
+  @Patch(':taskId')
+  @ApiOperation({ summary: 'Update task details' })
+  updateTask(
+    @Param('workspaceId') workspaceId: string,
+    @Param('projectId') projectId: string,
+    @Param('taskId') taskId: string,
+    @Body() updateTaskDto: UpdateTaskDto,
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.tasksService.updateTask(
+      workspaceId,
+      projectId,
+      taskId,
+      updateTaskDto,
+      user,
+    );
   }
 
   @Patch(':taskId/status')

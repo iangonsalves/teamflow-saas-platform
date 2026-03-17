@@ -1,5 +1,6 @@
 import {
   ForbiddenException,
+  NotFoundException,
   ServiceUnavailableException,
 } from '@nestjs/common';
 import {
@@ -113,6 +114,29 @@ describe('BillingService', () => {
         currentUser,
       ),
     ).rejects.toBeInstanceOf(ServiceUnavailableException);
+  });
+
+  it('rejects portal session creation when no stripe customer exists', async () => {
+    workspaceAccessService.getMembershipOrThrow.mockResolvedValue({
+      role: WorkspaceRole.OWNER,
+    });
+    prismaService.subscription.findUnique.mockResolvedValue(null);
+
+    await expect(
+      service.createPortalSession('workspace-1', currentUser),
+    ).rejects.toBeInstanceOf(NotFoundException);
+  });
+
+  it('returns an empty invoice list when no stripe customer exists', async () => {
+    workspaceAccessService.assertWorkspaceExists.mockResolvedValue(undefined);
+    workspaceAccessService.getMembershipOrThrow.mockResolvedValue({
+      role: WorkspaceRole.OWNER,
+    });
+    prismaService.subscription.findUnique.mockResolvedValue(null);
+
+    await expect(
+      service.listInvoices('workspace-1', currentUser),
+    ).resolves.toEqual([]);
   });
 
   it('logs checkout completion against the internal subscription id', async () => {

@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { apiRequestWithToken } from "@/lib/api";
 
 type Invitation = {
@@ -84,6 +84,45 @@ export function InvitationsPanel({
       setIsLoading(false);
     }
   }
+
+  useEffect(() => {
+    setInvitations([]);
+    setErrorMessage(null);
+    setSuccessMessage(null);
+
+    if (!workspaceId || !token || !canManage) {
+      return;
+    }
+
+    const activeWorkspaceId = workspaceId;
+    const accessToken = token;
+    let cancelled = false;
+
+    async function syncInvitations() {
+      try {
+        const items = await apiRequestWithToken<Invitation[]>(
+          `/workspaces/${activeWorkspaceId}/invitations`,
+          accessToken,
+        );
+
+        if (!cancelled) {
+          setInvitations(items);
+        }
+      } catch (error) {
+        if (!cancelled) {
+          setErrorMessage(
+            error instanceof Error ? error.message : "Failed to load invitations.",
+          );
+        }
+      }
+    }
+
+    void syncInvitations();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [canManage, token, workspaceId]);
 
   return (
     <section className="rounded-[2rem] border border-slate-900/10 bg-white/72 p-6 backdrop-blur">

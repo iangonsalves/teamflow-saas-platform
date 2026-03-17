@@ -1,10 +1,10 @@
 "use client";
 
-import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { apiRequestWithToken } from "@/lib/api";
 import { getAccessToken } from "@/lib/auth-storage";
+import { PageBackLink } from "./page-back-link";
 
 export function AcceptInvitationShell() {
   const router = useRouter();
@@ -49,6 +49,9 @@ export function AcceptInvitationShell() {
 
   return (
     <main className="min-h-screen bg-[radial-gradient(circle_at_top_left,_rgba(33,158,188,0.18),_transparent_28%),radial-gradient(circle_at_bottom_right,_rgba(244,162,97,0.24),_transparent_30%),linear-gradient(180deg,_#f7f1e7_0%,_#efe7d8_100%)] px-6 py-10 text-slate-900">
+      <div className="mx-auto mb-6 max-w-3xl">
+        <PageBackLink href="/dashboard" label="Back to dashboard" />
+      </div>
       <section className="mx-auto max-w-3xl rounded-[2rem] border border-slate-900/10 bg-white/75 p-8 shadow-[0_25px_80px_rgba(15,23,42,0.09)] backdrop-blur">
         <p className="font-mono text-xs uppercase tracking-[0.3em] text-slate-500">
           TeamFlow Invitation
@@ -86,12 +89,6 @@ export function AcceptInvitationShell() {
           >
             {isSubmitting ? "Accepting..." : "Accept invitation"}
           </button>
-          <Link
-            className="inline-flex items-center justify-center rounded-full border border-slate-900/10 bg-white px-5 py-3 text-sm font-medium text-slate-900 transition hover:bg-slate-50"
-            href="/dashboard"
-          >
-            Back to dashboard
-          </Link>
         </div>
       </section>
     </main>
