@@ -154,6 +154,54 @@ export class BillingService {
     };
   }
 
+  async createPortalSession(workspaceId: string, user: AuthenticatedUser) {
+    const membership = await this.workspaceAccessService.getMembershipOrThrow(
+      workspaceId,
+      user.sub,
+    );
+
+    if (
+      membership.role !== WorkspaceRole.OWNER &&
+      membership.role !== WorkspaceRole.ADMIN
+    ) {
+      throw new ForbiddenException(
+        'Only workspace owners and admins can manage billing.',
+      );
+    }
+
+    const subscription = await this.prisma.subscription.findUnique({
+      where: { workspaceId },
+    });
+
+    if (!subscription?.stripeCustomerId) {
+      throw new NotFoundException(
+        'No Stripe customer exists for this workspace yet.',
+      );
+    }
+
+    const stripe = this.getStripeClient();
+    const baseUrl = process.env.FRONTEND_URL ?? 'http://localhost:3000';
+    const session = await stripe.billingPortal.sessions.create({
+      customer: subscription.stripeCustomerId,
+      return_url: `${baseUrl}/settings/billing`,
+    });
+
+    await this.auditLogsService.logEvent({
+      workspaceId,
+      actorUserId: user.sub,
+      entityType: 'subscription',
+      entityId: subscription.id,
+      action: 'billing.portal_session_created',
+      metadata: {
+        stripeCustomerId: subscription.stripeCustomerId,
+      },
+    });
+
+    return {
+      portalUrl: session.url,
+    };
+  }
+
   async handleStripeWebhook(signature: string | undefined, rawBody: Buffer) {
     const stripe = this.getStripeClient();
     const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
