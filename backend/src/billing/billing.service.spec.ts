@@ -127,6 +127,18 @@ describe('BillingService', () => {
     ).rejects.toBeInstanceOf(NotFoundException);
   });
 
+  it('returns an empty invoice list when no stripe customer exists', async () => {
+    workspaceAccessService.assertWorkspaceExists.mockResolvedValue(undefined);
+    workspaceAccessService.getMembershipOrThrow.mockResolvedValue({
+      role: WorkspaceRole.OWNER,
+    });
+    prismaService.subscription.findUnique.mockResolvedValue(null);
+
+    await expect(
+      service.listInvoices('workspace-1', currentUser),
+    ).resolves.toEqual([]);
+  });
+
   it('logs checkout completion against the internal subscription id', async () => {
     const upsertedSubscription = {
       id: 'subscription-uuid-1',

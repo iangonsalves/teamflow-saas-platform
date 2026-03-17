@@ -1,10 +1,10 @@
 "use client";
 
-import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { apiRequestWithToken } from "@/lib/api";
 import { getAccessToken } from "@/lib/auth-storage";
+import { PageBackLink } from "./page-back-link";
 
 type WorkspaceSummary = {
   id: string;
@@ -28,6 +28,34 @@ type PortalResponse = {
   portalUrl: string;
 };
 
+type InvoiceSummary = {
+  id: string;
+  amountPaid: number;
+  currency: string;
+  status: string | null;
+  invoicePdf: string | null;
+  hostedInvoiceUrl: string | null;
+  createdAt: string;
+};
+
+function formatMoney(amountInMinorUnits: number, currency: string) {
+  return (amountInMinorUnits / 100).toLocaleString(undefined, {
+    style: "currency",
+    currency: currency.toUpperCase(),
+  });
+}
+
+function formatInvoiceStatus(status: string | null) {
+  if (!status) {
+    return "Unknown";
+  }
+
+  return status
+    .split("_")
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(" ");
+}
+
 const plans = [
   {
     id: "PRO",
@@ -46,6 +74,7 @@ export function BillingShell() {
   const searchParams = useSearchParams();
   const [workspace, setWorkspace] = useState<WorkspaceSummary | null>(null);
   const [subscription, setSubscription] = useState<SubscriptionSummary | null>(null);
+  const [invoices, setInvoices] = useState<InvoiceSummary[]>([]);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState<string | null>(null);
 
@@ -77,16 +106,24 @@ export function BillingShell() {
 
         if (!firstWorkspace) {
           setSubscription(null);
+          setInvoices([]);
           return;
         }
 
-        const currentSubscription = await apiRequestWithToken<SubscriptionSummary>(
-          `/workspaces/${firstWorkspace.id}/billing/subscription`,
-          accessToken,
-        );
+        const [currentSubscription, invoiceHistory] = await Promise.all([
+          apiRequestWithToken<SubscriptionSummary>(
+            `/workspaces/${firstWorkspace.id}/billing/subscription`,
+            accessToken,
+          ),
+          apiRequestWithToken<InvoiceSummary[]>(
+            `/workspaces/${firstWorkspace.id}/billing/invoices`,
+            accessToken,
+          ),
+        ]);
 
         if (!cancelled) {
           setSubscription(currentSubscription);
+          setInvoices(invoiceHistory);
         }
       } catch (error) {
         if (!cancelled) {
@@ -171,6 +208,9 @@ export function BillingShell() {
   return (
     <main className="min-h-screen bg-[radial-gradient(circle_at_top_left,_rgba(33,158,188,0.16),_transparent_28%),radial-gradient(circle_at_bottom_right,_rgba(244,162,97,0.24),_transparent_30%),linear-gradient(180deg,_#f7f1e7_0%,_#efe7d8_100%)] px-6 py-8 text-slate-900 sm:px-8">
       <section className="mx-auto max-w-5xl">
+        <div className="mb-6">
+          <PageBackLink href="/dashboard" label="Back to dashboard" />
+        </div>
         <header className="rounded-[2rem] border border-slate-900/10 bg-white/72 p-6 shadow-[0_25px_80px_rgba(15,23,42,0.09)] backdrop-blur">
           <p className="font-mono text-xs uppercase tracking-[0.32em] text-slate-500">
             TeamFlow Billing
@@ -183,13 +223,38 @@ export function BillingShell() {
             keys and price IDs are added to the environment, the plan buttons
             will create real checkout sessions.
           </p>
-          <div className="mt-5 flex gap-3">
-            <Link
-              className="inline-flex items-center justify-center rounded-full border border-slate-900/10 bg-white px-5 py-3 text-sm font-medium text-slate-900 transition hover:bg-slate-50"
-              href="/dashboard"
-            >
-              Back to dashboard
-            </Link>
+          <div className="mt-6 grid gap-4 md:grid-cols-3">
+            <div className="rounded-[1.5rem] border border-slate-900/10 bg-[#f8f2e6] p-4">
+              <p className="font-mono text-[11px] uppercase tracking-[0.24em] text-slate-500">
+                Workspace
+              </p>
+              <p className="mt-3 text-lg font-semibold text-slate-900">
+                {workspace?.name ?? "No workspace"}
+              </p>
+              <p className="mt-1 text-sm text-slate-600">
+                Billing context for this page
+              </p>
+            </div>
+            <div className="rounded-[1.5rem] border border-slate-900/10 bg-white p-4">
+              <p className="font-mono text-[11px] uppercase tracking-[0.24em] text-slate-500">
+                Plan
+              </p>
+              <p className="mt-3 text-lg font-semibold text-slate-900">
+                {subscription?.plan ?? "FREE"}
+              </p>
+              <p className="mt-1 text-sm text-slate-600">
+                Current subscription plan
+              </p>
+            </div>
+            <div className="rounded-[1.5rem] border border-slate-900/10 bg-slate-900 p-4 text-slate-50">
+              <p className="font-mono text-[11px] uppercase tracking-[0.24em] text-slate-400">
+                Invoices
+              </p>
+              <p className="mt-3 text-3xl font-semibold">{invoices.length}</p>
+              <p className="mt-1 text-sm text-slate-300">
+                Recent billing records available
+              </p>
+            </div>
           </div>
         </header>
 
@@ -214,28 +279,52 @@ export function BillingShell() {
 
         <section className="mt-6 grid gap-6 lg:grid-cols-[0.9fr_1.1fr]">
           <div className="rounded-[2rem] border border-slate-900/10 bg-white/72 p-6 backdrop-blur">
-            <p className="font-mono text-xs uppercase tracking-[0.22em] text-slate-500">
-              Current subscription
-            </p>
-            <div className="mt-4 rounded-2xl bg-slate-900 p-5 text-slate-50">
-              <p className="text-xl font-semibold">
-                {subscription?.plan ?? "FREE"}
-              </p>
-              <p className="mt-2 text-sm text-slate-300">
-                Status: {subscription?.status ?? "INACTIVE"}
-              </p>
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <p className="font-mono text-xs uppercase tracking-[0.22em] text-slate-500">
+                  Current subscription
+                </p>
+                <h2 className="mt-3 text-2xl font-semibold text-slate-900">
+                  Billing control center
+                </h2>
+                <p className="mt-2 text-sm leading-6 text-slate-600">
+                  Upgrade through checkout, manage billing in Stripe, and review
+                  the latest invoice activity from one page.
+                </p>
+              </div>
+              <span className="rounded-full bg-[#edf8f5] px-3 py-1 text-xs font-medium uppercase tracking-[0.18em] text-[#1f6c63]">
+                {subscription?.status ?? "INACTIVE"}
+              </span>
+            </div>
+
+            <div className="mt-5 rounded-2xl bg-slate-900 p-5 text-slate-50">
+              <p className="text-xl font-semibold">{subscription?.plan ?? "FREE"}</p>
               <p className="mt-2 text-sm text-slate-300">
                 Workspace: {workspace?.name ?? "No workspace loaded"}
               </p>
+              <p className="mt-2 text-sm text-slate-300">
+                Customer created: {subscription?.stripeCustomerId ? "Yes" : "No"}
+              </p>
             </div>
-            <button
-              className="mt-4 rounded-full border border-slate-900/10 bg-white px-5 py-3 text-sm font-medium text-slate-900 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
-              disabled={!workspace || !subscription?.stripeCustomerId || isSubmitting !== null}
-              onClick={() => void handlePortalOpen()}
-              type="button"
-            >
-              {isSubmitting === "PORTAL" ? "Opening portal..." : "Manage subscription"}
-            </button>
+
+            <div className="mt-4 flex flex-wrap gap-3">
+              <button
+                className="rounded-full border border-slate-900/10 bg-white px-5 py-3 text-sm font-medium text-slate-900 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
+                disabled={!workspace || !subscription?.stripeCustomerId || isSubmitting !== null}
+                onClick={() => void handlePortalOpen()}
+                type="button"
+              >
+                {isSubmitting === "PORTAL" ? "Opening portal..." : "Manage subscription"}
+              </button>
+              <button
+                className="rounded-full bg-slate-900 px-5 py-3 text-sm font-medium text-white transition hover:bg-slate-700 disabled:cursor-not-allowed disabled:bg-slate-400"
+                disabled={!workspace || isSubmitting !== null}
+                onClick={() => void handleCheckout("PRO")}
+                type="button"
+              >
+                {isSubmitting === "PRO" ? "Starting checkout..." : "Upgrade to Pro"}
+              </button>
+            </div>
             {!subscription?.stripeCustomerId ? (
               <p className="mt-3 text-sm text-slate-600">
                 Complete checkout once to create the Stripe customer before using the portal.
@@ -268,6 +357,66 @@ export function BillingShell() {
                 </button>
               </div>
             ))}
+          </div>
+        </section>
+
+        <section className="mt-6 rounded-[2rem] border border-slate-900/10 bg-white/72 p-6 backdrop-blur">
+          <div className="flex items-center justify-between gap-4">
+            <div>
+              <p className="font-mono text-xs uppercase tracking-[0.22em] text-slate-500">
+                Billing history
+              </p>
+              <h2 className="mt-3 text-2xl font-semibold text-slate-900">
+                Recent invoices
+              </h2>
+            </div>
+          </div>
+
+          <div className="mt-5 grid gap-3">
+            {invoices.length > 0 ? (
+              invoices.map((invoice) => (
+                <div
+                  className="flex flex-col gap-4 rounded-[1.5rem] border border-slate-900/10 bg-white p-4 sm:flex-row sm:items-center sm:justify-between"
+                  key={invoice.id}
+                >
+                  <div>
+                    <p className="text-base font-semibold text-slate-900">
+                      {formatMoney(invoice.amountPaid, invoice.currency)}
+                    </p>
+                    <p className="mt-1 text-sm text-slate-600">
+                      {new Date(invoice.createdAt).toLocaleDateString()} ·{" "}
+                      {formatInvoiceStatus(invoice.status)}
+                    </p>
+                  </div>
+                  <div className="flex gap-3">
+                    {invoice.hostedInvoiceUrl ? (
+                      <a
+                        className="inline-flex items-center justify-center rounded-full border border-slate-900/10 bg-white px-4 py-2 text-sm font-medium text-slate-900 no-underline transition hover:bg-slate-50"
+                        href={invoice.hostedInvoiceUrl}
+                        rel="noreferrer"
+                        target="_blank"
+                      >
+                        <span className="text-slate-900">View invoice</span>
+                      </a>
+                    ) : null}
+                    {invoice.invoicePdf ? (
+                      <a
+                        className="inline-flex min-w-[132px] items-center justify-center rounded-full bg-slate-900 px-4 py-2 text-sm font-medium text-white no-underline transition hover:bg-slate-700"
+                        href={invoice.invoicePdf}
+                        rel="noreferrer"
+                        target="_blank"
+                      >
+                        <span className="text-white">Download PDF</span>
+                      </a>
+                    ) : null}
+                  </div>
+                </div>
+              ))
+            ) : (
+              <p className="text-sm text-slate-600">
+                No invoices yet. Once Stripe bills this workspace, recent invoices will appear here.
+              </p>
+            )}
           </div>
         </section>
       </section>

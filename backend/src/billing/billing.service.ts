@@ -24,6 +24,16 @@ type BillingSubscriptionResponse = {
   stripeSubId: string | null;
 };
 
+type BillingInvoiceResponse = {
+  id: string;
+  amountPaid: number;
+  currency: string;
+  status: string | null;
+  invoicePdf: string | null;
+  hostedInvoiceUrl: string | null;
+  createdAt: string;
+};
+
 @Injectable()
 export class BillingService {
   constructor(
@@ -200,6 +210,38 @@ export class BillingService {
     return {
       portalUrl: session.url,
     };
+  }
+
+  async listInvoices(
+    workspaceId: string,
+    user: AuthenticatedUser,
+  ): Promise<BillingInvoiceResponse[]> {
+    await this.workspaceAccessService.assertWorkspaceExists(workspaceId);
+    await this.workspaceAccessService.getMembershipOrThrow(workspaceId, user.sub);
+
+    const subscription = await this.prisma.subscription.findUnique({
+      where: { workspaceId },
+    });
+
+    if (!subscription?.stripeCustomerId) {
+      return [];
+    }
+
+    const stripe = this.getStripeClient();
+    const invoices = await stripe.invoices.list({
+      customer: subscription.stripeCustomerId,
+      limit: 12,
+    });
+
+    return invoices.data.map((invoice) => ({
+      id: invoice.id,
+      amountPaid: invoice.amount_paid,
+      currency: invoice.currency,
+      status: invoice.status,
+      invoicePdf: invoice.invoice_pdf ?? null,
+      hostedInvoiceUrl: invoice.hosted_invoice_url ?? null,
+      createdAt: new Date(invoice.created * 1000).toISOString(),
+    }));
   }
 
   async handleStripeWebhook(signature: string | undefined, rawBody: Buffer) {
