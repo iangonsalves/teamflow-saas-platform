@@ -50,6 +50,17 @@ export class BillingController {
     );
   }
 
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  @Post('workspaces/:workspaceId/billing/portal-session')
+  @ApiOperation({ summary: 'Create a Stripe billing portal session for a workspace' })
+  createPortalSession(
+    @Param('workspaceId') workspaceId: string,
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.billingService.createPortalSession(workspaceId, user);
+  }
+
   @Post('billing/webhooks/stripe')
   @ApiOperation({ summary: 'Handle Stripe webhook events' })
   handleStripeWebhook(

@@ -24,6 +24,10 @@ type CheckoutResponse = {
   sessionId: string;
 };
 
+type PortalResponse = {
+  portalUrl: string;
+};
+
 const plans = [
   {
     id: "PRO",
@@ -135,6 +139,35 @@ export function BillingShell() {
     }
   }
 
+  async function handlePortalOpen() {
+    const token = getAccessToken();
+
+    if (!token || !workspace) {
+      return;
+    }
+
+    setErrorMessage(null);
+    setIsSubmitting("PORTAL");
+
+    try {
+      const response = await apiRequestWithToken<PortalResponse>(
+        `/workspaces/${workspace.id}/billing/portal-session`,
+        token,
+        {
+          method: "POST",
+        },
+      );
+
+      window.location.href = response.portalUrl;
+    } catch (error) {
+      setErrorMessage(
+        error instanceof Error ? error.message : "Failed to open billing portal.",
+      );
+    } finally {
+      setIsSubmitting(null);
+    }
+  }
+
   return (
     <main className="min-h-screen bg-[radial-gradient(circle_at_top_left,_rgba(33,158,188,0.16),_transparent_28%),radial-gradient(circle_at_bottom_right,_rgba(244,162,97,0.24),_transparent_30%),linear-gradient(180deg,_#f7f1e7_0%,_#efe7d8_100%)] px-6 py-8 text-slate-900 sm:px-8">
       <section className="mx-auto max-w-5xl">
@@ -195,6 +228,19 @@ export function BillingShell() {
                 Workspace: {workspace?.name ?? "No workspace loaded"}
               </p>
             </div>
+            <button
+              className="mt-4 rounded-full border border-slate-900/10 bg-white px-5 py-3 text-sm font-medium text-slate-900 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
+              disabled={!workspace || !subscription?.stripeCustomerId || isSubmitting !== null}
+              onClick={() => void handlePortalOpen()}
+              type="button"
+            >
+              {isSubmitting === "PORTAL" ? "Opening portal..." : "Manage subscription"}
+            </button>
+            {!subscription?.stripeCustomerId ? (
+              <p className="mt-3 text-sm text-slate-600">
+                Complete checkout once to create the Stripe customer before using the portal.
+              </p>
+            ) : null}
           </div>
 
           <div className="grid gap-4">
