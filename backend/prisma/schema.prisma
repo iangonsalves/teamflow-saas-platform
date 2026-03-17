@@ -39,6 +39,13 @@ enum SubscriptionStatus {
   CANCELED
 }
 
+enum WorkspaceInvitationStatus {
+  PENDING
+  ACCEPTED
+  REVOKED
+  EXPIRED
+}
+
 model User {
   id                   String             @id @default(uuid()) @db.Uuid
   name                 String             @db.VarChar(255)
@@ -53,6 +60,8 @@ model User {
   createdTasks         Task[]             @relation("CreatedTasks")
   taskComments         TaskComment[]
   auditLogs            AuditLog[]         @relation("AuditLogActor")
+  sentWorkspaceInvites WorkspaceInvitation[] @relation("WorkspaceInvitationSender")
+  acceptedInvites      WorkspaceInvitation[] @relation("WorkspaceInvitationAccepter")
 
   @@map("users")
 }
@@ -65,6 +74,7 @@ model Workspace {
   updatedAt      DateTime          @updatedAt @map("updated_at")
   owner          User              @relation("WorkspaceOwner", fields: [ownerId], references: [id], onDelete: Cascade)
   members        WorkspaceMember[]
+  invitations    WorkspaceInvitation[]
   projects       Project[]
   auditLogs      AuditLog[]
   subscription   Subscription?
@@ -168,4 +178,26 @@ model Subscription {
   workspace        Workspace          @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
 
   @@map("subscriptions")
+}
+
+model WorkspaceInvitation {
+  id               String                    @id @default(uuid()) @db.Uuid
+  workspaceId      String                    @map("workspace_id") @db.Uuid
+  email            String                    @db.VarChar(320)
+  role             WorkspaceRole
+  token            String                    @unique @db.VarChar(255)
+  status           WorkspaceInvitationStatus @default(PENDING)
+  invitedByUserId  String                    @map("invited_by_user_id") @db.Uuid
+  acceptedByUserId String?                   @map("accepted_by_user_id") @db.Uuid
+  expiresAt        DateTime                  @map("expires_at")
+  acceptedAt       DateTime?                 @map("accepted_at")
+  createdAt        DateTime                  @default(now()) @map("created_at")
+  updatedAt        DateTime                  @updatedAt @map("updated_at")
+  workspace        Workspace                 @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  invitedBy        User                      @relation("WorkspaceInvitationSender", fields: [invitedByUserId], references: [id], onDelete: Cascade)
+  acceptedBy       User?                     @relation("WorkspaceInvitationAccepter", fields: [acceptedByUserId], references: [id], onDelete: SetNull)
+
+  @@index([workspaceId, status])
+  @@index([email, status])
+  @@map("workspace_invitations")
 }
