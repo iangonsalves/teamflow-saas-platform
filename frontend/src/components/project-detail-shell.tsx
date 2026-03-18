@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { apiRequestWithToken } from "@/lib/api";
-import { clearAuthSession, getAccessToken, type AuthUser } from "@/lib/auth-storage";
+import { clearAuthSession, getAccessToken } from "@/lib/auth-storage";
 import { PageBackLink } from "./page-back-link";
 import { TaskBoard } from "./dashboard/task-board";
 import type {
@@ -34,7 +34,6 @@ export function ProjectDetailShell({ projectId }: ProjectDetailShellProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [token, setToken] = useState<string | null>(null);
-  const [user, setUser] = useState<AuthUser | null>(null);
   const [workspaces, setWorkspaces] = useState<WorkspaceSummary[]>([]);
   const [workspaceMembers, setWorkspaceMembers] = useState<WorkspaceMember[]>([]);
   const [projects, setProjects] = useState<ProjectSummary[]>([]);
@@ -66,6 +65,9 @@ export function ProjectDetailShell({ projectId }: ProjectDetailShellProps) {
     () => workspaces.find((workspace) => workspace.id === resolvedWorkspaceId) ?? null,
     [resolvedWorkspaceId, workspaces],
   );
+  const todoCount = tasks.filter((task) => task.status === "TODO").length;
+  const inProgressCount = tasks.filter((task) => task.status === "IN_PROGRESS").length;
+  const doneCount = tasks.filter((task) => task.status === "DONE").length;
 
   useEffect(() => {
     const accessToken = getAccessToken();
@@ -125,19 +127,6 @@ export function ProjectDetailShell({ projectId }: ProjectDetailShellProps) {
 
     async function loadProjectPage() {
       try {
-        const me = await apiRequestWithToken<{ user: { sub: string; email: string; name: string } }>(
-          "/auth/me",
-          sessionToken,
-        );
-
-        if (!cancelled) {
-          setUser({
-            id: me.user.sub,
-            name: me.user.name,
-            email: me.user.email,
-          });
-        }
-
         const context = await resolveProjectContext();
 
         if (cancelled) {
@@ -418,9 +407,9 @@ export function ProjectDetailShell({ projectId }: ProjectDetailShellProps) {
           />
         </div>
 
-        <header className="rounded-[2rem] border border-slate-900/10 bg-white/78 p-6 shadow-[0_25px_80px_rgba(15,23,42,0.09)] backdrop-blur">
-          <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
-            <div className="max-w-3xl">
+        <header className="rounded-[2.25rem] border border-slate-900/10 bg-white/82 p-6 shadow-[0_30px_90px_rgba(15,23,42,0.09)] backdrop-blur">
+          <div className="grid gap-6 xl:grid-cols-[minmax(0,1.1fr)_340px]">
+            <div className="rounded-[2rem] border border-slate-900/10 bg-[linear-gradient(135deg,_#fcfaf5_0%,_#f4ead8_100%)] p-6">
               <p className="font-mono text-xs uppercase tracking-[0.32em] text-slate-500">
                 Project detail
               </p>
@@ -428,58 +417,74 @@ export function ProjectDetailShell({ projectId }: ProjectDetailShellProps) {
                 {selectedProject?.name ?? "Project"}
               </h1>
               <p className="mt-3 text-base leading-7 text-slate-600">
-                The task board lives here now, with more space for status movement, editing, and assignment.
+                The task board is the main surface here now, with creation available on demand
+                and the surrounding chrome kept intentionally quieter.
               </p>
+              <div className="mt-6 grid gap-4 md:grid-cols-4">
+                <div className="rounded-[1.5rem] border border-slate-900/10 bg-white/82 p-4">
+                  <p className="font-mono text-[11px] uppercase tracking-[0.24em] text-slate-500">
+                    Workspace
+                  </p>
+                  <p className="mt-3 text-lg font-semibold text-slate-900">
+                    {activeWorkspace?.name ?? "Unknown"}
+                  </p>
+                  <p className="mt-1 text-sm text-slate-600">Operational context</p>
+                </div>
+                <div className="rounded-[1.5rem] border border-slate-900/10 bg-white/82 p-4">
+                  <p className="font-mono text-[11px] uppercase tracking-[0.24em] text-slate-500">
+                    Todo
+                  </p>
+                  <p className="mt-3 text-3xl font-semibold text-slate-900">{todoCount}</p>
+                  <p className="mt-1 text-sm text-slate-600">Ready to be pulled</p>
+                </div>
+                <div className="rounded-[1.5rem] border border-slate-900/10 bg-white/82 p-4">
+                  <p className="font-mono text-[11px] uppercase tracking-[0.24em] text-slate-500">
+                    In progress
+                  </p>
+                  <p className="mt-3 text-3xl font-semibold text-slate-900">{inProgressCount}</p>
+                  <p className="mt-1 text-sm text-slate-600">Currently moving</p>
+                </div>
+                <div className="rounded-[1.5rem] border border-slate-900/10 bg-white/82 p-4">
+                  <p className="font-mono text-[11px] uppercase tracking-[0.24em] text-slate-500">
+                    Done
+                  </p>
+                  <p className="mt-3 text-3xl font-semibold text-slate-900">{doneCount}</p>
+                  <p className="mt-1 text-sm text-slate-600">Finished cards</p>
+                </div>
+              </div>
             </div>
-            <div className="flex flex-wrap gap-3">
-              <Link
-                className="inline-flex items-center justify-center rounded-full border border-slate-900/10 bg-white px-5 py-3 text-sm font-medium text-slate-900 no-underline transition hover:bg-slate-50"
-                href="/settings/billing"
-              >
-                Billing
-              </Link>
-              <button
-                className="inline-flex items-center justify-center rounded-full bg-slate-900 px-5 py-3 text-sm font-medium text-white transition hover:bg-slate-700"
-                onClick={handleLogout}
-                type="button"
-              >
-                Log out
-              </button>
-            </div>
-          </div>
 
-          <div className="mt-6 grid gap-4 md:grid-cols-4">
-            <div className="rounded-[1.5rem] border border-slate-900/10 bg-[#f8f2e6] p-4">
-              <p className="font-mono text-[11px] uppercase tracking-[0.24em] text-slate-500">
-                Workspace
+            <div className="rounded-[2rem] bg-slate-900 p-6 text-slate-50 shadow-[0_24px_80px_rgba(15,23,42,0.16)]">
+              <p className="font-mono text-xs uppercase tracking-[0.24em] text-slate-400">
+                Control
               </p>
-              <p className="mt-3 text-lg font-semibold text-slate-900">
-                {activeWorkspace?.name ?? "Unknown"}
+              <p className="mt-4 text-2xl font-semibold">Keep the board moving.</p>
+              <p className="mt-3 text-sm leading-7 text-slate-300">
+                Team size: {workspaceMembers.length}. Your role: {selectedWorkspaceRole ?? "MEMBER"}.
               </p>
-              <p className="mt-1 text-sm text-slate-600">Operational context</p>
-            </div>
-            <div className="rounded-[1.5rem] border border-slate-900/10 bg-white p-4">
-              <p className="font-mono text-[11px] uppercase tracking-[0.24em] text-slate-500">
-                Tasks
-              </p>
-              <p className="mt-3 text-3xl font-semibold text-slate-900">{tasks.length}</p>
-              <p className="mt-1 text-sm text-slate-600">Cards on this board</p>
-            </div>
-            <div className="rounded-[1.5rem] border border-slate-900/10 bg-white p-4">
-              <p className="font-mono text-[11px] uppercase tracking-[0.24em] text-slate-500">
-                Team
-              </p>
-              <p className="mt-3 text-3xl font-semibold text-slate-900">{workspaceMembers.length}</p>
-              <p className="mt-1 text-sm text-slate-600">Members available to assign</p>
-            </div>
-            <div className="rounded-[1.5rem] border border-slate-900/10 bg-slate-900 p-4 text-slate-50">
-              <p className="font-mono text-[11px] uppercase tracking-[0.24em] text-slate-400">
-                Your role
-              </p>
-              <p className="mt-3 text-lg font-semibold">
-                {selectedWorkspaceRole ?? "MEMBER"}
-              </p>
-              <p className="mt-1 text-sm text-slate-300">{user?.email ?? "Signed in"}</p>
+              <div className="mt-6 grid gap-3">
+                <Link
+                  className="inline-flex items-center justify-center rounded-full border border-white/10 bg-white/10 px-5 py-3 text-sm font-medium text-white no-underline transition hover:bg-white/15"
+                  href="/settings/billing"
+                >
+                  Billing
+                </Link>
+                {resolvedWorkspaceId ? (
+                  <Link
+                    className="inline-flex items-center justify-center rounded-full border border-white/10 bg-transparent px-5 py-3 text-sm font-medium text-white no-underline transition hover:bg-white/10"
+                    href={`/workspaces/${resolvedWorkspaceId}`}
+                  >
+                    Workspace page
+                  </Link>
+                ) : null}
+                <button
+                  className="inline-flex items-center justify-center rounded-full bg-white px-5 py-3 text-sm font-medium text-slate-900 transition hover:bg-slate-200"
+                  onClick={handleLogout}
+                  type="button"
+                >
+                  Log out
+                </button>
+              </div>
             </div>
           </div>
         </header>
@@ -490,21 +495,21 @@ export function ProjectDetailShell({ projectId }: ProjectDetailShellProps) {
           </div>
         ) : null}
 
-        <section className="mt-6 grid gap-6 xl:grid-cols-[280px_minmax(0,1fr)]">
-          <aside className="space-y-6">
-            <section className="rounded-[2rem] border border-slate-900/10 bg-white/78 p-6 shadow-[0_24px_70px_rgba(15,23,42,0.08)] backdrop-blur">
+        <section className="mt-6 grid gap-6 xl:grid-cols-[240px_minmax(0,1fr)]">
+          <aside className="space-y-6 xl:sticky xl:top-8 xl:self-start">
+            <section className="rounded-[2rem] border border-slate-900/10 bg-white/78 p-5 shadow-[0_24px_70px_rgba(15,23,42,0.08)] backdrop-blur">
               <p className="font-mono text-xs uppercase tracking-[0.22em] text-slate-500">
-                Workspace projects
+                Project rail
               </p>
               <p className="mt-2 text-sm leading-6 text-slate-600">
-                Jump between projects without returning to the crowded dashboard.
+                Jump between projects without pulling focus away from the board.
               </p>
               <div className="mt-4 grid gap-3">
                 {projects.map((project) => (
                   <Link
                     className={`rounded-[1.25rem] border px-4 py-4 text-sm no-underline transition ${
                       project.id === projectId
-                        ? "border-slate-900 bg-slate-900 text-white"
+                        ? "border-slate-900 bg-slate-900 text-white shadow-[0_14px_34px_rgba(15,23,42,0.18)]"
                         : "border-slate-900/10 bg-[#fffdfa] text-slate-900 hover:border-slate-900/25"
                     }`}
                     href={`/projects/${project.id}?workspaceId=${resolvedWorkspaceId}`}
@@ -521,6 +526,18 @@ export function ProjectDetailShell({ projectId }: ProjectDetailShellProps) {
                   </Link>
                 ))}
               </div>
+            </section>
+
+            <section className="rounded-[2rem] border border-slate-900/10 bg-[linear-gradient(180deg,_#e7f3f0_0%,_#f4fbf9_100%)] p-5 shadow-[0_18px_50px_rgba(42,157,143,0.10)]">
+              <p className="font-mono text-xs uppercase tracking-[0.22em] text-slate-500">
+                Team context
+              </p>
+              <p className="mt-3 text-lg font-semibold text-slate-900">
+                {workspaceMembers.length} assignable members
+              </p>
+              <p className="mt-2 text-sm leading-6 text-slate-600">
+                Assignee controls stay on each card, so the left rail can stay lightweight.
+              </p>
             </section>
           </aside>
 
