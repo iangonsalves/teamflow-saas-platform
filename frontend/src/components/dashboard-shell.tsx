@@ -43,6 +43,7 @@ export function DashboardShell() {
   const [workspaceLoading, setWorkspaceLoading] = useState(false);
   const [projectLoading, setProjectLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [workspaceActionMessage, setWorkspaceActionMessage] = useState<string | null>(null);
   const [projectName, setProjectName] = useState("");
   const [projectDescription, setProjectDescription] = useState("");
   const [taskTitle, setTaskTitle] = useState("");
@@ -249,6 +250,19 @@ export function DashboardShell() {
     };
   }, [selectedProjectId, selectedWorkspaceId, token]);
 
+  async function reloadWorkspaceList() {
+    if (!token) {
+      return [];
+    }
+
+    const workspaceItems = await apiRequestWithToken<WorkspaceSummary[]>(
+      "/workspaces",
+      token,
+    );
+    setWorkspaces(workspaceItems);
+    return workspaceItems;
+  }
+
   async function reloadProjectsAndMembers() {
     if (!token || !selectedWorkspaceId) {
       return;
@@ -319,6 +333,133 @@ export function DashboardShell() {
       );
     } finally {
       setSubmittingProject(false);
+    }
+  }
+
+  async function handleCreateWorkspace(name: string) {
+    if (!token) {
+      return;
+    }
+
+    setWorkspaceLoading(true);
+    setErrorMessage(null);
+    setWorkspaceActionMessage(null);
+
+    try {
+      const workspace = await apiRequestWithToken<WorkspaceSummary>(
+        "/workspaces",
+        token,
+        {
+          method: "POST",
+          body: JSON.stringify({ name }),
+        },
+      );
+
+      await reloadWorkspaceList();
+      setSelectedWorkspaceId(workspace.id);
+      setWorkspaceActionMessage(`Workspace "${workspace.name}" created.`);
+    } catch (error) {
+      setErrorMessage(
+        error instanceof Error ? error.message : "Failed to create workspace.",
+      );
+    } finally {
+      setWorkspaceLoading(false);
+    }
+  }
+
+  async function handleAddWorkspaceMember(email: string, role: WorkspaceRole) {
+    if (!token || !selectedWorkspaceId) {
+      return;
+    }
+
+    setWorkspaceLoading(true);
+    setErrorMessage(null);
+    setWorkspaceActionMessage(null);
+
+    try {
+      const membership = await apiRequestWithToken<WorkspaceMember>(
+        `/workspaces/${selectedWorkspaceId}/members`,
+        token,
+        {
+          method: "POST",
+          body: JSON.stringify({ email, role }),
+        },
+      );
+
+      await Promise.all([reloadProjectsAndMembers(), reloadWorkspaceList()]);
+      setWorkspaceActionMessage(
+        `${membership.user.name} was added as ${membership.role.toLowerCase()}.`,
+      );
+    } catch (error) {
+      setErrorMessage(
+        error instanceof Error ? error.message : "Failed to add workspace member.",
+      );
+    } finally {
+      setWorkspaceLoading(false);
+    }
+  }
+
+  async function handleUpdateWorkspaceMemberRole(
+    memberUserId: string,
+    role: WorkspaceRole,
+  ) {
+    if (!token || !selectedWorkspaceId) {
+      return;
+    }
+
+    setWorkspaceLoading(true);
+    setErrorMessage(null);
+    setWorkspaceActionMessage(null);
+
+    try {
+      const membership = await apiRequestWithToken<WorkspaceMember>(
+        `/workspaces/${selectedWorkspaceId}/members/${memberUserId}`,
+        token,
+        {
+          method: "PATCH",
+          body: JSON.stringify({ role }),
+        },
+      );
+
+      await Promise.all([reloadProjectsAndMembers(), reloadWorkspaceList()]);
+      setWorkspaceActionMessage(
+        `${membership.user.name} is now ${membership.role.toLowerCase()}.`,
+      );
+    } catch (error) {
+      setErrorMessage(
+        error instanceof Error ? error.message : "Failed to update member role.",
+      );
+    } finally {
+      setWorkspaceLoading(false);
+    }
+  }
+
+  async function handleRemoveWorkspaceMember(memberUserId: string) {
+    if (!token || !selectedWorkspaceId) {
+      return;
+    }
+
+    setWorkspaceLoading(true);
+    setErrorMessage(null);
+    setWorkspaceActionMessage(null);
+
+    try {
+      await apiRequestWithToken(
+        `/workspaces/${selectedWorkspaceId}/members/${memberUserId}`,
+        token,
+        {
+          method: "DELETE",
+        },
+      );
+
+      await Promise.all([reloadProjectsAndMembers(), reloadWorkspaceList()]);
+      setWorkspaceActionMessage("Workspace member removed.");
+    } catch (error) {
+      setErrorMessage(
+        error instanceof Error ? error.message : "Failed to remove workspace member.",
+      );
+    } finally {
+      setWorkspaceLoading(false);
     }
   }
 
@@ -488,6 +629,7 @@ export function DashboardShell() {
   function handleWorkspaceChange(workspaceId: string) {
     setSelectedWorkspaceId(workspaceId);
     setSelectedProjectId(null);
+    setWorkspaceActionMessage(null);
     setTaskActionMessage(null);
     setProjectActionMessage(null);
     handleCancelEditingTask();
@@ -536,10 +678,24 @@ export function DashboardShell() {
         <section className="mt-6 grid gap-6 xl:grid-cols-[320px_minmax(0,1fr)]">
           <WorkspaceSidebar
             canManageWorkspace={canManageWorkspace}
+            onAddWorkspaceMember={(email, role) => {
+              void handleAddWorkspaceMember(email, role);
+            }}
+            onCreateWorkspace={(name) => {
+              void handleCreateWorkspace(name);
+            }}
+            onRemoveWorkspaceMember={(memberUserId) => {
+              void handleRemoveWorkspaceMember(memberUserId);
+            }}
+            onUpdateWorkspaceMemberRole={(memberUserId, role) => {
+              void handleUpdateWorkspaceMemberRole(memberUserId, role);
+            }}
             onWorkspaceChange={handleWorkspaceChange}
             selectedWorkspaceId={selectedWorkspaceId}
+            selectedWorkspaceName={selectedWorkspace?.name ?? null}
             token={token}
             user={user}
+            workspaceActionMessage={workspaceActionMessage}
             workspaceLoading={workspaceLoading}
             workspaceMembers={workspaceMembers}
             workspaces={workspaces}
