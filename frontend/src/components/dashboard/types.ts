@@ -10,6 +10,13 @@ export type WorkspaceSummary = {
   members: Array<{ role: WorkspaceRole }>;
 };
 
+export type WorkspaceDetail = {
+  id: string;
+  name: string;
+  owner: AuthUser;
+  members: WorkspaceMember[];
+};
+
 export type WorkspaceMember = {
   id: string;
   role: WorkspaceRole;
@@ -49,4 +56,13 @@ export type AuthMeResponse = {
     email: string;
     name: string;
   };
+};
+
+export type AuditLogSummary = {
+  id: string;
+  action: string;
+  entityType: string;
+  entityId: string;
+  createdAt: string;
+  actor: AuthUser | null;
 };
