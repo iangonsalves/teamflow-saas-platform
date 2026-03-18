@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { apiRequestWithToken } from "@/lib/api";
 import {
@@ -10,62 +11,49 @@ import {
   type AuthUser,
 } from "@/lib/auth-storage";
 import { DashboardHeader } from "./dashboard/dashboard-header";
-import { ProjectsPanel } from "./dashboard/projects-panel";
-import { TaskBoard } from "./dashboard/task-board";
+import { WorkspaceSidebar } from "./dashboard/workspace-sidebar";
 import type {
+  AuditLogSummary,
   AuthMeResponse,
   ProjectSummary,
-  TaskPriority,
   TasksResponse,
-  TaskStatus,
   TaskSummary,
   WorkspaceMember,
   WorkspaceRole,
   WorkspaceSummary,
 } from "./dashboard/types";
-import { formatStatus } from "./dashboard/utils";
-import { WorkspaceSidebar } from "./dashboard/workspace-sidebar";
+import { formatAuditAction, formatStatus } from "./dashboard/utils";
+
+type RecentTaskItem = TaskSummary & {
+  projectId: string;
+  projectName: string;
+  workspaceId: string;
+};
 
 export function DashboardShell() {
   const router = useRouter();
   const [token, setToken] = useState<string | null>(null);
   const [user, setUser] = useState<AuthUser | null>(null);
   const [workspaces, setWorkspaces] = useState<WorkspaceSummary[]>([]);
-  const [workspaceMembers, setWorkspaceMembers] = useState<WorkspaceMember[]>([]);
-  const [projects, setProjects] = useState<ProjectSummary[]>([]);
-  const [tasks, setTasks] = useState<TaskSummary[]>([]);
   const [selectedWorkspaceId, setSelectedWorkspaceId] = useState<string | null>(null);
-  const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
   const [selectedWorkspaceRole, setSelectedWorkspaceRole] = useState<WorkspaceRole | null>(
     null,
   );
+  const [workspaceMembers, setWorkspaceMembers] = useState<WorkspaceMember[]>([]);
+  const [projects, setProjects] = useState<ProjectSummary[]>([]);
+  const [recentTasks, setRecentTasks] = useState<RecentTaskItem[]>([]);
+  const [auditLogs, setAuditLogs] = useState<AuditLogSummary[]>([]);
+  const [workspaceTaskCount, setWorkspaceTaskCount] = useState(0);
+  const [workspaceActiveTaskCount, setWorkspaceActiveTaskCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [workspaceLoading, setWorkspaceLoading] = useState(false);
-  const [projectLoading, setProjectLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [workspaceActionMessage, setWorkspaceActionMessage] = useState<string | null>(null);
-  const [projectName, setProjectName] = useState("");
-  const [projectDescription, setProjectDescription] = useState("");
-  const [taskTitle, setTaskTitle] = useState("");
-  const [taskDescription, setTaskDescription] = useState("");
-  const [taskPriority, setTaskPriority] = useState<TaskPriority>("MEDIUM");
-  const [taskAssignee, setTaskAssignee] = useState("");
-  const [projectActionMessage, setProjectActionMessage] = useState<string | null>(null);
-  const [taskActionMessage, setTaskActionMessage] = useState<string | null>(null);
-  const [submittingProject, setSubmittingProject] = useState(false);
-  const [submittingTask, setSubmittingTask] = useState(false);
-  const [updatingTaskId, setUpdatingTaskId] = useState<string | null>(null);
-  const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
-  const [editTitle, setEditTitle] = useState("");
-  const [editDescription, setEditDescription] = useState("");
-  const [editPriority, setEditPriority] = useState<TaskPriority>("MEDIUM");
 
-  const canManageWorkspace =
-    selectedWorkspaceRole === "OWNER" || selectedWorkspaceRole === "ADMIN";
   const selectedWorkspace =
     workspaces.find((workspace) => workspace.id === selectedWorkspaceId) ?? null;
-  const selectedProject =
-    projects.find((project) => project.id === selectedProjectId) ?? null;
+
+  const spotlightProject = useMemo(() => projects[0] ?? null, [projects]);
 
   useEffect(() => {
     const accessToken = getAccessToken();
@@ -113,9 +101,12 @@ export function DashboardShell() {
         if (workspaceItems.length === 0) {
           setSelectedWorkspaceId(null);
           setSelectedWorkspaceRole(null);
-          setProjects([]);
-          setTasks([]);
           setWorkspaceMembers([]);
+          setProjects([]);
+          setRecentTasks([]);
+          setAuditLogs([]);
+          setWorkspaceTaskCount(0);
+          setWorkspaceActiveTaskCount(0);
           return;
         }
 
@@ -148,50 +139,81 @@ export function DashboardShell() {
       return;
     }
 
-    const accessToken = token;
-    const workspaceId = selectedWorkspaceId;
+    const sessionToken = token;
     let cancelled = false;
     setWorkspaceLoading(true);
     setErrorMessage(null);
 
-    async function loadWorkspaceDetails() {
+    async function loadWorkspaceOverview() {
       try {
-        const [membersResponse, projectsResponse] = await Promise.all([
+        const workspaceId = selectedWorkspaceId;
+
+        if (!workspaceId) {
+          return;
+        }
+
+        const [membersResponse, projectsResponse, auditResponse] = await Promise.all([
           apiRequestWithToken<WorkspaceMember[]>(
             `/workspaces/${workspaceId}/members`,
-            accessToken,
+            sessionToken,
           ),
           apiRequestWithToken<ProjectSummary[]>(
             `/workspaces/${workspaceId}/projects`,
-            accessToken,
+            sessionToken,
+          ),
+          apiRequestWithToken<AuditLogSummary[]>(
+            `/workspaces/${workspaceId}/audit-logs`,
+            sessionToken,
           ),
         ]);
+
+        const taskCollections = await Promise.all(
+          projectsResponse.slice(0, 6).map(async (project) => {
+            const taskResponse = await apiRequestWithToken<TasksResponse>(
+              `/workspaces/${workspaceId}/projects/${project.id}/tasks?page=1&pageSize=12`,
+              sessionToken,
+            );
+
+            return taskResponse.items.map<RecentTaskItem>((task) => ({
+              ...task,
+              projectId: project.id,
+              projectName: project.name,
+              workspaceId,
+            }));
+          }),
+        );
 
         if (cancelled) {
           return;
         }
 
+        const flattenedTasks = taskCollections.flat();
+
         setWorkspaceMembers(membersResponse);
         setProjects(projectsResponse);
+        setAuditLogs(auditResponse.slice(0, 6));
+        setWorkspaceTaskCount(flattenedTasks.length);
+        setWorkspaceActiveTaskCount(
+          flattenedTasks.filter((task) => task.status !== "DONE").length,
+        );
+        setRecentTasks(
+          flattenedTasks
+            .sort((left, right) => {
+              const leftDate = left.createdAt ? Date.parse(left.createdAt) : 0;
+              const rightDate = right.createdAt ? Date.parse(right.createdAt) : 0;
+              return rightDate - leftDate;
+            })
+            .slice(0, 6),
+        );
 
         const workspace = workspaces.find((item) => item.id === workspaceId);
         setSelectedWorkspaceRole(workspace?.members[0]?.role ?? null);
-
-        setSelectedProjectId((currentProjectId) => {
-          const previousProjectStillExists = projectsResponse.some(
-            (project) => project.id === currentProjectId,
-          );
-
-          return previousProjectStillExists
-            ? currentProjectId
-            : (projectsResponse[0]?.id ?? null);
-        });
       } catch (error) {
         if (!cancelled) {
           setErrorMessage(
             error instanceof Error
               ? error.message
-              : "Failed to load workspace details.",
+              : "Failed to load workspace overview.",
           );
         }
       } finally {
@@ -201,54 +223,12 @@ export function DashboardShell() {
       }
     }
 
-    void loadWorkspaceDetails();
+    void loadWorkspaceOverview();
 
     return () => {
       cancelled = true;
     };
   }, [selectedWorkspaceId, token, workspaces]);
-
-  useEffect(() => {
-    if (!token || !selectedWorkspaceId || !selectedProjectId) {
-      setTasks([]);
-      return;
-    }
-
-    const accessToken = token;
-    const workspaceId = selectedWorkspaceId;
-    const projectId = selectedProjectId;
-    let cancelled = false;
-    setProjectLoading(true);
-
-    async function loadTasks() {
-      try {
-        const tasksResponse = await apiRequestWithToken<TasksResponse>(
-          `/workspaces/${workspaceId}/projects/${projectId}/tasks?page=1&pageSize=50`,
-          accessToken,
-        );
-
-        if (!cancelled) {
-          setTasks(tasksResponse.items);
-        }
-      } catch (error) {
-        if (!cancelled) {
-          setErrorMessage(
-            error instanceof Error ? error.message : "Failed to load tasks.",
-          );
-        }
-      } finally {
-        if (!cancelled) {
-          setProjectLoading(false);
-        }
-      }
-    }
-
-    void loadTasks();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [selectedProjectId, selectedWorkspaceId, token]);
 
   async function reloadWorkspaceList() {
     if (!token) {
@@ -261,79 +241,6 @@ export function DashboardShell() {
     );
     setWorkspaces(workspaceItems);
     return workspaceItems;
-  }
-
-  async function reloadProjectsAndMembers() {
-    if (!token || !selectedWorkspaceId) {
-      return;
-    }
-
-    const accessToken = token;
-    const workspaceId = selectedWorkspaceId;
-    const [membersResponse, projectsResponse] = await Promise.all([
-      apiRequestWithToken<WorkspaceMember[]>(`/workspaces/${workspaceId}/members`, accessToken),
-      apiRequestWithToken<ProjectSummary[]>(`/workspaces/${workspaceId}/projects`, accessToken),
-    ]);
-
-    setWorkspaceMembers(membersResponse);
-    setProjects(projectsResponse);
-    if (!projectsResponse.some((project) => project.id === selectedProjectId)) {
-      setSelectedProjectId(projectsResponse[0]?.id ?? null);
-    }
-  }
-
-  async function reloadTasks() {
-    if (!token || !selectedWorkspaceId || !selectedProjectId) {
-      setTasks([]);
-      return;
-    }
-
-    const accessToken = token;
-    const workspaceId = selectedWorkspaceId;
-    const projectId = selectedProjectId;
-    const tasksResponse = await apiRequestWithToken<TasksResponse>(
-      `/workspaces/${workspaceId}/projects/${projectId}/tasks?page=1&pageSize=50`,
-      accessToken,
-    );
-    setTasks(tasksResponse.items);
-  }
-
-  async function handleCreateProject(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-
-    if (!token || !selectedWorkspaceId || !canManageWorkspace) {
-      return;
-    }
-
-    setSubmittingProject(true);
-    setProjectActionMessage(null);
-    setErrorMessage(null);
-
-    try {
-      const project = await apiRequestWithToken<ProjectSummary>(
-        `/workspaces/${selectedWorkspaceId}/projects`,
-        token,
-        {
-          method: "POST",
-          body: JSON.stringify({
-            name: projectName,
-            description: projectDescription || undefined,
-          }),
-        },
-      );
-
-      await reloadProjectsAndMembers();
-      setSelectedProjectId(project.id);
-      setProjectName("");
-      setProjectDescription("");
-      setProjectActionMessage(`Project "${project.name}" created.`);
-    } catch (error) {
-      setErrorMessage(
-        error instanceof Error ? error.message : "Failed to create project.",
-      );
-    } finally {
-      setSubmittingProject(false);
-    }
   }
 
   async function handleCreateWorkspace(name: string) {
@@ -367,272 +274,9 @@ export function DashboardShell() {
     }
   }
 
-  async function handleAddWorkspaceMember(email: string, role: WorkspaceRole) {
-    if (!token || !selectedWorkspaceId) {
-      return;
-    }
-
-    setWorkspaceLoading(true);
-    setErrorMessage(null);
-    setWorkspaceActionMessage(null);
-
-    try {
-      const membership = await apiRequestWithToken<WorkspaceMember>(
-        `/workspaces/${selectedWorkspaceId}/members`,
-        token,
-        {
-          method: "POST",
-          body: JSON.stringify({ email, role }),
-        },
-      );
-
-      await Promise.all([reloadProjectsAndMembers(), reloadWorkspaceList()]);
-      setWorkspaceActionMessage(
-        `${membership.user.name} was added as ${membership.role.toLowerCase()}.`,
-      );
-    } catch (error) {
-      setErrorMessage(
-        error instanceof Error ? error.message : "Failed to add workspace member.",
-      );
-    } finally {
-      setWorkspaceLoading(false);
-    }
-  }
-
-  async function handleUpdateWorkspaceMemberRole(
-    memberUserId: string,
-    role: WorkspaceRole,
-  ) {
-    if (!token || !selectedWorkspaceId) {
-      return;
-    }
-
-    setWorkspaceLoading(true);
-    setErrorMessage(null);
-    setWorkspaceActionMessage(null);
-
-    try {
-      const membership = await apiRequestWithToken<WorkspaceMember>(
-        `/workspaces/${selectedWorkspaceId}/members/${memberUserId}`,
-        token,
-        {
-          method: "PATCH",
-          body: JSON.stringify({ role }),
-        },
-      );
-
-      await Promise.all([reloadProjectsAndMembers(), reloadWorkspaceList()]);
-      setWorkspaceActionMessage(
-        `${membership.user.name} is now ${membership.role.toLowerCase()}.`,
-      );
-    } catch (error) {
-      setErrorMessage(
-        error instanceof Error ? error.message : "Failed to update member role.",
-      );
-    } finally {
-      setWorkspaceLoading(false);
-    }
-  }
-
-  async function handleRemoveWorkspaceMember(memberUserId: string) {
-    if (!token || !selectedWorkspaceId) {
-      return;
-    }
-
-    setWorkspaceLoading(true);
-    setErrorMessage(null);
-    setWorkspaceActionMessage(null);
-
-    try {
-      await apiRequestWithToken(
-        `/workspaces/${selectedWorkspaceId}/members/${memberUserId}`,
-        token,
-        {
-          method: "DELETE",
-        },
-      );
-
-      await Promise.all([reloadProjectsAndMembers(), reloadWorkspaceList()]);
-      setWorkspaceActionMessage("Workspace member removed.");
-    } catch (error) {
-      setErrorMessage(
-        error instanceof Error ? error.message : "Failed to remove workspace member.",
-      );
-    } finally {
-      setWorkspaceLoading(false);
-    }
-  }
-
-  async function handleCreateTask(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-
-    if (!token || !selectedWorkspaceId || !selectedProjectId || !canManageWorkspace) {
-      return;
-    }
-
-    setSubmittingTask(true);
-    setTaskActionMessage(null);
-    setErrorMessage(null);
-
-    try {
-      const createdTask = await apiRequestWithToken<TaskSummary>(
-        `/workspaces/${selectedWorkspaceId}/projects/${selectedProjectId}/tasks`,
-        token,
-        {
-          method: "POST",
-          body: JSON.stringify({
-            title: taskTitle,
-            description: taskDescription || undefined,
-            priority: taskPriority,
-            assignedTo: taskAssignee || undefined,
-          }),
-        },
-      );
-
-      await reloadTasks();
-      setTaskTitle("");
-      setTaskDescription("");
-      setTaskPriority("MEDIUM");
-      setTaskAssignee("");
-      setTaskActionMessage(`Task "${createdTask.title}" added to the board.`);
-    } catch (error) {
-      setErrorMessage(
-        error instanceof Error ? error.message : "Failed to create task.",
-      );
-    } finally {
-      setSubmittingTask(false);
-    }
-  }
-
-  async function handleTaskStatusChange(taskId: string, status: TaskStatus) {
-    if (!token || !selectedWorkspaceId || !selectedProjectId) {
-      return;
-    }
-
-    setUpdatingTaskId(taskId);
-    setTaskActionMessage(null);
-    setErrorMessage(null);
-
-    try {
-      const updatedTask = await apiRequestWithToken<TaskSummary>(
-        `/workspaces/${selectedWorkspaceId}/projects/${selectedProjectId}/tasks/${taskId}/status`,
-        token,
-        {
-          method: "PATCH",
-          body: JSON.stringify({ status }),
-        },
-      );
-
-      setTasks((currentTasks) =>
-        currentTasks.map((task) => (task.id === taskId ? updatedTask : task)),
-      );
-      setTaskActionMessage(
-        `Task "${updatedTask.title}" moved to ${formatStatus(updatedTask.status)}.`,
-      );
-    } catch (error) {
-      setErrorMessage(
-        error instanceof Error ? error.message : "Failed to update task status.",
-      );
-    } finally {
-      setUpdatingTaskId(null);
-    }
-  }
-
-  async function handleTaskAssigneeUpdate(taskId: string, assigneeId: string) {
-    if (!token || !selectedWorkspaceId || !selectedProjectId) {
-      return;
-    }
-
-    setUpdatingTaskId(taskId);
-    setTaskActionMessage(null);
-    setErrorMessage(null);
-
-    try {
-      const updatedTask = await apiRequestWithToken<TaskSummary>(
-        `/workspaces/${selectedWorkspaceId}/projects/${selectedProjectId}/tasks/${taskId}/assignee`,
-        token,
-        {
-          method: "PATCH",
-          body: JSON.stringify({
-            assignedTo: assigneeId || null,
-          }),
-        },
-      );
-
-      setTasks((currentTasks) =>
-        currentTasks.map((task) => (task.id === taskId ? updatedTask : task)),
-      );
-      setTaskActionMessage(
-        `Task "${updatedTask.title}" assigned to ${updatedTask.assignee?.name ?? "nobody"}.`,
-      );
-    } catch (error) {
-      setErrorMessage(
-        error instanceof Error ? error.message : "Failed to update assignee.",
-      );
-    } finally {
-      setUpdatingTaskId(null);
-    }
-  }
-
-  function handleStartEditingTask(task: TaskSummary) {
-    setEditingTaskId(task.id);
-    setEditTitle(task.title);
-    setEditDescription(task.description ?? "");
-    setEditPriority(task.priority);
-    setTaskActionMessage(null);
-  }
-
-  function handleCancelEditingTask() {
-    setEditingTaskId(null);
-    setEditTitle("");
-    setEditDescription("");
-    setEditPriority("MEDIUM");
-  }
-
-  async function handleSaveTaskEdit(taskId: string) {
-    if (!token || !selectedWorkspaceId || !selectedProjectId) {
-      return;
-    }
-
-    setUpdatingTaskId(taskId);
-    setTaskActionMessage(null);
-    setErrorMessage(null);
-
-    try {
-      const updatedTask = await apiRequestWithToken<TaskSummary>(
-        `/workspaces/${selectedWorkspaceId}/projects/${selectedProjectId}/tasks/${taskId}`,
-        token,
-        {
-          method: "PATCH",
-          body: JSON.stringify({
-            title: editTitle,
-            description: editDescription,
-            priority: editPriority,
-          }),
-        },
-      );
-
-      setTasks((currentTasks) =>
-        currentTasks.map((task) => (task.id === taskId ? updatedTask : task)),
-      );
-      setTaskActionMessage(`Task "${updatedTask.title}" updated.`);
-      handleCancelEditingTask();
-    } catch (error) {
-      setErrorMessage(
-        error instanceof Error ? error.message : "Failed to update task details.",
-      );
-    } finally {
-      setUpdatingTaskId(null);
-    }
-  }
-
   function handleWorkspaceChange(workspaceId: string) {
     setSelectedWorkspaceId(workspaceId);
-    setSelectedProjectId(null);
     setWorkspaceActionMessage(null);
-    setTaskActionMessage(null);
-    setProjectActionMessage(null);
-    handleCancelEditingTask();
   }
 
   function handleLogout() {
@@ -642,13 +286,13 @@ export function DashboardShell() {
 
   if (loading) {
     return (
-      <main className="min-h-screen bg-[linear-gradient(180deg,_#f7f1e7_0%,_#efe7d8_100%)] px-6 py-10 text-slate-900">
+      <main className="min-h-screen bg-[radial-gradient(circle_at_top_left,_rgba(42,157,143,0.14),_transparent_24%),radial-gradient(circle_at_bottom_right,_rgba(244,162,97,0.14),_transparent_30%),linear-gradient(180deg,_#f8f3ea_0%,_#efe4d3_100%)] px-6 py-10 text-slate-900">
         <div className="mx-auto max-w-6xl">
           <p className="font-mono text-xs uppercase tracking-[0.32em] text-slate-500">
             Dashboard
           </p>
           <h1 className="mt-3 text-4xl font-semibold tracking-tight">
-            Loading your workspace command center...
+            Loading the operating overview...
           </h1>
         </div>
       </main>
@@ -656,16 +300,16 @@ export function DashboardShell() {
   }
 
   return (
-    <main className="min-h-screen bg-[radial-gradient(circle_at_top_left,_rgba(33,158,188,0.18),_transparent_28%),radial-gradient(circle_at_bottom_right,_rgba(244,162,97,0.24),_transparent_30%),linear-gradient(180deg,_#f7f1e7_0%,_#efe7d8_100%)] px-6 py-8 text-slate-900 sm:px-8">
+    <main className="min-h-screen bg-[radial-gradient(circle_at_top_left,_rgba(42,157,143,0.14),_transparent_24%),radial-gradient(circle_at_bottom_right,_rgba(244,162,97,0.14),_transparent_30%),linear-gradient(180deg,_#f8f3ea_0%,_#efe4d3_100%)] px-6 py-8 text-slate-900 sm:px-8">
       <section className="mx-auto max-w-7xl">
         <DashboardHeader
-          activeTaskCount={tasks.filter((task) => task.status !== "DONE").length}
+          activeTaskCount={workspaceActiveTaskCount}
           activeWorkspaceName={selectedWorkspace?.name ?? null}
           memberCount={workspaceMembers.length}
           onLogout={handleLogout}
           projectCount={projects.length}
           selectedWorkspaceRole={selectedWorkspaceRole}
-          taskCount={tasks.length}
+          taskCount={workspaceTaskCount}
           user={user}
         />
 
@@ -675,89 +319,236 @@ export function DashboardShell() {
           </div>
         ) : null}
 
-        <section className="mt-6 grid gap-6 xl:grid-cols-[320px_minmax(0,1fr)]">
+        <section className="mt-6 grid gap-6 xl:grid-cols-[300px_minmax(0,1fr)]">
           <WorkspaceSidebar
-            canManageWorkspace={canManageWorkspace}
-            onAddWorkspaceMember={(email, role) => {
-              void handleAddWorkspaceMember(email, role);
-            }}
             onCreateWorkspace={(name) => {
               void handleCreateWorkspace(name);
             }}
-            onRemoveWorkspaceMember={(memberUserId) => {
-              void handleRemoveWorkspaceMember(memberUserId);
-            }}
-            onUpdateWorkspaceMemberRole={(memberUserId, role) => {
-              void handleUpdateWorkspaceMemberRole(memberUserId, role);
-            }}
             onWorkspaceChange={handleWorkspaceChange}
             selectedWorkspaceId={selectedWorkspaceId}
-            selectedWorkspaceName={selectedWorkspace?.name ?? null}
-            token={token}
             user={user}
             workspaceActionMessage={workspaceActionMessage}
             workspaceLoading={workspaceLoading}
-            workspaceMembers={workspaceMembers}
             workspaces={workspaces}
           />
 
           <div className="space-y-6">
-            <ProjectsPanel
-              canManageWorkspace={canManageWorkspace}
-              onCreateProject={handleCreateProject}
-              onProjectDescriptionChange={setProjectDescription}
-              onProjectNameChange={setProjectName}
-              onSelectProject={setSelectedProjectId}
-              projectActionMessage={projectActionMessage}
-              projectDescription={projectDescription}
-              projectName={projectName}
-              projects={projects}
-              selectedProject={selectedProject}
-              selectedProjectId={selectedProjectId}
-              selectedWorkspace={selectedWorkspace}
-              selectedWorkspaceId={selectedWorkspaceId}
-              submittingProject={submittingProject}
-            />
+            <section className="rounded-[2rem] border border-slate-900/10 bg-white/80 p-6 shadow-[0_24px_70px_rgba(15,23,42,0.08)] backdrop-blur">
+              <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
+                <div className="max-w-3xl">
+                  <p className="font-mono text-xs uppercase tracking-[0.22em] text-slate-500">
+                    Overview
+                  </p>
+                  <h2 className="mt-3 text-3xl font-semibold text-slate-900">
+                    {selectedWorkspace
+                      ? `${selectedWorkspace.name} at a glance`
+                      : "Start with a workspace"}
+                  </h2>
+                  <p className="mt-3 text-sm leading-7 text-slate-600">
+                    The overview is now meant for orientation only: current workspace status,
+                    project entry points, recent task movement, and activity history.
+                  </p>
+                </div>
+                <div className="flex flex-wrap gap-3">
+                  {selectedWorkspace ? (
+                    <Link
+                      className="inline-flex items-center justify-center rounded-full bg-slate-900 px-5 py-3 text-sm font-medium text-white no-underline transition hover:bg-slate-700"
+                      href={`/workspaces/${selectedWorkspace.id}`}
+                    >
+                      Open workspace
+                    </Link>
+                  ) : null}
+                  {spotlightProject ? (
+                    <Link
+                      className="inline-flex items-center justify-center rounded-full border border-slate-900/10 bg-[#e7f3f0] px-5 py-3 text-sm font-medium text-slate-900 no-underline transition hover:bg-[#d9ece7]"
+                      href={`/projects/${spotlightProject.id}?workspaceId=${selectedWorkspaceId}`}
+                    >
+                      Open active project
+                    </Link>
+                  ) : null}
+                </div>
+              </div>
 
-            <TaskBoard
-              canManageWorkspace={canManageWorkspace}
-              onCreateTask={handleCreateTask}
-              onTaskAssigneeChange={setTaskAssignee}
-              onTaskDescriptionChange={setTaskDescription}
-              onTaskPriorityChange={setTaskPriority}
-              onEditDescriptionChange={setEditDescription}
-              onEditPriorityChange={setEditPriority}
-              onEditTitleChange={setEditTitle}
-              onCancelEditingTask={handleCancelEditingTask}
-              onSaveTaskEdit={(taskId) => {
-                void handleSaveTaskEdit(taskId);
-              }}
-              onStartEditingTask={handleStartEditingTask}
-              onTaskAssigneeUpdate={(taskId, assigneeId) => {
-                void handleTaskAssigneeUpdate(taskId, assigneeId);
-              }}
-              onTaskStatusChange={(taskId, status) => {
-                void handleTaskStatusChange(taskId, status);
-              }}
-              onTaskTitleChange={setTaskTitle}
-              editDescription={editDescription}
-              editPriority={editPriority}
-              editingTaskId={editingTaskId}
-              editTitle={editTitle}
-              projectLoading={projectLoading}
-              selectedProjectId={selectedProjectId}
-              selectedProjectName={selectedProject?.name ?? null}
-              selectedWorkspaceId={selectedWorkspaceId}
-              submittingTask={submittingTask}
-              taskActionMessage={taskActionMessage}
-              taskAssignee={taskAssignee}
-              taskDescription={taskDescription}
-              taskPriority={taskPriority}
-              taskTitle={taskTitle}
-              tasks={tasks}
-              updatingTaskId={updatingTaskId}
-              workspaceMembers={workspaceMembers}
-            />
+              <div className="mt-6 grid gap-4 md:grid-cols-3">
+                <div className="rounded-[1.5rem] border border-slate-900/10 bg-[#fff7ec] p-5">
+                  <p className="font-mono text-[11px] uppercase tracking-[0.24em] text-slate-500">
+                    Workspace lane
+                  </p>
+                  <p className="mt-3 text-lg font-semibold text-slate-900">
+                    {selectedWorkspace?.name ?? "No workspace selected"}
+                  </p>
+                  <p className="mt-2 text-sm text-slate-600">
+                    Members, invites, and project planning now live on the workspace page.
+                  </p>
+                </div>
+                <div className="rounded-[1.5rem] border border-slate-900/10 bg-white p-5">
+                  <p className="font-mono text-[11px] uppercase tracking-[0.24em] text-slate-500">
+                    Active projects
+                  </p>
+                  <p className="mt-3 text-3xl font-semibold text-slate-900">
+                    {projects.length}
+                  </p>
+                  <p className="mt-2 text-sm text-slate-600">
+                    Focused delivery lanes with separate task-board pages.
+                  </p>
+                </div>
+                <div className="rounded-[1.5rem] border border-slate-900/10 bg-slate-900 p-5 text-slate-50">
+                  <p className="font-mono text-[11px] uppercase tracking-[0.24em] text-slate-400">
+                    Recent movement
+                  </p>
+                  <p className="mt-3 text-3xl font-semibold">{recentTasks.length}</p>
+                  <p className="mt-2 text-sm text-slate-300">
+                    Recent tasks surfaced from the selected workspace.
+                  </p>
+                </div>
+              </div>
+            </section>
+
+            <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
+              <section className="rounded-[2rem] border border-slate-900/10 bg-white/80 p-6 shadow-[0_24px_70px_rgba(15,23,42,0.08)] backdrop-blur">
+                <div className="flex items-end justify-between gap-4">
+                  <div>
+                    <p className="font-mono text-xs uppercase tracking-[0.22em] text-slate-500">
+                      Active projects
+                    </p>
+                    <h3 className="mt-3 text-2xl font-semibold text-slate-900">
+                      Delivery lanes
+                    </h3>
+                  </div>
+                  {selectedWorkspace ? (
+                    <Link
+                      className="rounded-full border border-slate-900/10 bg-white px-4 py-2 text-sm font-medium text-slate-900 no-underline transition hover:bg-slate-50"
+                      href={`/workspaces/${selectedWorkspace.id}`}
+                    >
+                      View workspace
+                    </Link>
+                  ) : null}
+                </div>
+
+                <div className="mt-5 grid gap-3">
+                  {projects.length > 0 ? (
+                    projects.slice(0, 4).map((project) => (
+                      <Link
+                        className="rounded-[1.5rem] border border-slate-900/10 bg-[#fffdfa] p-4 no-underline transition hover:border-slate-900/25 hover:shadow-[0_14px_34px_rgba(15,23,42,0.08)]"
+                        href={`/projects/${project.id}?workspaceId=${selectedWorkspaceId}`}
+                        key={project.id}
+                      >
+                        <div className="flex items-start justify-between gap-4">
+                          <div>
+                            <p className="text-base font-semibold text-slate-900">
+                              {project.name}
+                            </p>
+                            <p className="mt-2 text-sm leading-6 text-slate-600">
+                              {project.description || "No description yet."}
+                            </p>
+                          </div>
+                          <span className="rounded-full bg-[#edf8f5] px-3 py-1 text-[11px] uppercase tracking-[0.18em] text-[#1f6c63]">
+                            Open
+                          </span>
+                        </div>
+                      </Link>
+                    ))
+                  ) : (
+                    <div className="rounded-[1.5rem] border border-dashed border-slate-900/15 bg-[#fffdfa] px-5 py-8 text-sm text-slate-600">
+                      No projects yet. Create one from the workspace page instead of the overview.
+                    </div>
+                  )}
+                </div>
+              </section>
+
+              <section className="rounded-[2rem] border border-slate-900/10 bg-white/80 p-6 shadow-[0_24px_70px_rgba(15,23,42,0.08)] backdrop-blur">
+                <div className="flex items-end justify-between gap-4">
+                  <div>
+                    <p className="font-mono text-xs uppercase tracking-[0.22em] text-slate-500">
+                      Recent tasks
+                    </p>
+                    <h3 className="mt-3 text-2xl font-semibold text-slate-900">
+                      What moved recently
+                    </h3>
+                  </div>
+                </div>
+
+                <div className="mt-5 grid gap-3">
+                  {recentTasks.length > 0 ? (
+                    recentTasks.map((task) => (
+                      <Link
+                        className="rounded-[1.5rem] border border-slate-900/10 bg-[#fffdfa] p-4 no-underline transition hover:border-slate-900/25 hover:shadow-[0_14px_34px_rgba(15,23,42,0.08)]"
+                        href={`/projects/${task.projectId}?workspaceId=${task.workspaceId}`}
+                        key={task.id}
+                      >
+                        <div className="flex items-start justify-between gap-4">
+                          <div>
+                            <p className="text-base font-semibold text-slate-900">
+                              {task.title}
+                            </p>
+                            <p className="mt-1 text-sm text-slate-600">
+                              {task.projectName}
+                            </p>
+                          </div>
+                          <span className="rounded-full bg-[#fff3e7] px-3 py-1 text-[11px] uppercase tracking-[0.18em] text-[#8d5b28]">
+                            {formatStatus(task.status)}
+                          </span>
+                        </div>
+                        <p className="mt-3 text-sm leading-6 text-slate-600">
+                          {task.description || "No description yet."}
+                        </p>
+                      </Link>
+                    ))
+                  ) : (
+                    <div className="rounded-[1.5rem] border border-dashed border-slate-900/15 bg-[#fffdfa] px-5 py-8 text-sm text-slate-600">
+                      Recent tasks will appear here once projects start moving.
+                    </div>
+                  )}
+                </div>
+              </section>
+            </div>
+
+            <section className="rounded-[2rem] border border-slate-900/10 bg-white/80 p-6 shadow-[0_24px_70px_rgba(15,23,42,0.08)] backdrop-blur">
+              <div className="flex items-end justify-between gap-4">
+                <div>
+                  <p className="font-mono text-xs uppercase tracking-[0.22em] text-slate-500">
+                    Recent activity
+                  </p>
+                  <h3 className="mt-3 text-2xl font-semibold text-slate-900">
+                    Audit trail
+                  </h3>
+                </div>
+                {selectedWorkspace ? (
+                  <Link
+                    className="rounded-full border border-slate-900/10 bg-white px-4 py-2 text-sm font-medium text-slate-900 no-underline transition hover:bg-slate-50"
+                    href={`/workspaces/${selectedWorkspace.id}`}
+                  >
+                    Manage workspace
+                  </Link>
+                ) : null}
+              </div>
+
+              <div className="mt-5 grid gap-3 lg:grid-cols-2">
+                {auditLogs.length > 0 ? (
+                  auditLogs.map((log) => (
+                    <div
+                      className="rounded-[1.5rem] border border-slate-900/10 bg-[#fffdfa] p-4"
+                      key={log.id}
+                    >
+                      <p className="text-sm font-semibold text-slate-900">
+                        {formatAuditAction(log.action)}
+                      </p>
+                      <p className="mt-1 text-sm text-slate-600">
+                        {log.actor?.name ?? "System"} on{" "}
+                        {new Date(log.createdAt).toLocaleString()}
+                      </p>
+                      <p className="mt-3 text-xs uppercase tracking-[0.18em] text-slate-500">
+                        {log.entityType}
+                      </p>
+                    </div>
+                  ))
+                ) : (
+                  <div className="rounded-[1.5rem] border border-dashed border-slate-900/15 bg-[#fffdfa] px-5 py-8 text-sm text-slate-600">
+                    Activity history will appear here as the team uses the workspace.
+                  </div>
+                )}
+              </div>
+            </section>
           </div>
         </section>
       </section>
