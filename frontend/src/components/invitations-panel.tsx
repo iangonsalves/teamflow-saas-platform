@@ -125,12 +125,15 @@ export function InvitationsPanel({
   }, [canManage, token, workspaceId]);
 
   return (
-    <section className="rounded-[2rem] border border-slate-900/10 bg-white/72 p-6 backdrop-blur">
-      <div className="flex items-center justify-between gap-4">
+    <section className="rounded-[2.15rem] border border-slate-900/10 bg-white/82 p-6 shadow-[0_22px_70px_rgba(15,23,42,0.08)] backdrop-blur">
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         <div>
           <p className="font-mono text-xs uppercase tracking-[0.22em] text-slate-500">
             Invitations
           </p>
+          <h3 className="mt-3 text-2xl font-semibold text-slate-900">
+            Invite new teammates
+          </h3>
           <p className="mt-2 text-sm leading-6 text-slate-600">
             Create a token-based workspace invitation and share the generated link.
           </p>
@@ -146,30 +149,35 @@ export function InvitationsPanel({
       </div>
 
       {canManage ? (
-        <form className="mt-5 grid gap-3 sm:grid-cols-[1fr_180px_auto]" onSubmit={handleCreateInvitation}>
-          <input
-            className="rounded-2xl border border-slate-900/10 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-slate-900/30"
-            onChange={(event) => setEmail(event.target.value)}
-            placeholder="invitee@example.com"
-            required
-            type="email"
-            value={email}
-          />
-          <select
-            className="rounded-2xl border border-slate-900/10 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-slate-900/30"
-            onChange={(event) => setRole(event.target.value)}
-            value={role}
-          >
-            <option value="MEMBER">Member</option>
-            <option value="ADMIN">Admin</option>
-          </select>
-          <button
-            className="rounded-full bg-slate-900 px-5 py-3 text-sm font-medium text-white transition hover:bg-slate-700 disabled:cursor-not-allowed disabled:bg-slate-400"
-            disabled={isLoading}
-            type="submit"
-          >
-            {isLoading ? "Creating..." : "Create invite"}
-          </button>
+        <form
+          className="mt-5 rounded-[1.8rem] border border-[#c5b8a1] bg-[#f6efe1] p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.45)]"
+          onSubmit={handleCreateInvitation}
+        >
+          <div className="grid gap-3 sm:grid-cols-[1fr_180px_auto]">
+            <input
+              className="rounded-2xl border border-slate-900/10 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-slate-900/30"
+              onChange={(event) => setEmail(event.target.value)}
+              placeholder="invitee@example.com"
+              required
+              type="email"
+              value={email}
+            />
+            <select
+              className="rounded-2xl border border-slate-900/10 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-slate-900/30"
+              onChange={(event) => setRole(event.target.value)}
+              value={role}
+            >
+              <option value="MEMBER">Member</option>
+              <option value="ADMIN">Admin</option>
+            </select>
+            <button
+              className="rounded-full bg-slate-900 px-5 py-3 text-sm font-medium text-white transition hover:bg-slate-700 disabled:cursor-not-allowed disabled:bg-slate-400"
+              disabled={isLoading}
+              type="submit"
+            >
+              {isLoading ? "Creating..." : "Create invite"}
+            </button>
+          </div>
         </form>
       ) : (
         <p className="mt-5 text-sm text-slate-600">
@@ -193,7 +201,7 @@ export function InvitationsPanel({
         {invitations.length > 0 ? (
           invitations.map((invitation) => (
             <div
-              className="rounded-2xl border border-slate-900/10 bg-[#f7efe2] p-4"
+              className="rounded-[1.5rem] border border-slate-900/10 bg-[#fffdfa] p-4 shadow-[0_12px_30px_rgba(15,23,42,0.05)]"
               key={invitation.id}
             >
               <div className="flex items-center justify-between gap-4">

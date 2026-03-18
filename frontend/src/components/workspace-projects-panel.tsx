@@ -31,7 +31,7 @@ export function WorkspaceProjectsPanel({
   onCreateProject,
 }: WorkspaceProjectsPanelProps) {
   return (
-    <section className="rounded-[2rem] border border-slate-900/10 bg-white/82 p-6 shadow-[0_24px_70px_rgba(15,23,42,0.08)] backdrop-blur">
+    <section className="rounded-[2.15rem] border border-slate-900/10 bg-white/84 p-6 shadow-[0_30px_90px_rgba(15,23,42,0.08)] backdrop-blur">
       <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
         <div>
           <p className="font-mono text-xs uppercase tracking-[0.22em] text-slate-500">
@@ -41,17 +41,20 @@ export function WorkspaceProjectsPanel({
             {workspaceName ? `Inside ${workspaceName}` : "Workspace projects"}
           </h2>
           <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600">
-            Projects now get their own destination pages, so the main dashboard can stay light.
+            This is the planning surface for the workspace. Open any project to move into its dedicated board.
           </p>
+        </div>
+        <div className="rounded-full border border-slate-900/10 bg-[#fff7ec] px-4 py-2 text-sm text-[#8d5b28]">
+          {projects.length} active {projects.length === 1 ? "project" : "projects"}
         </div>
       </div>
 
-      <div className="mt-5 grid gap-5 xl:grid-cols-[minmax(0,1fr)_340px]">
+      <div className="mt-6 grid gap-5 xl:grid-cols-[minmax(0,1fr)_320px]">
         <div className="grid gap-3">
           {projects.length > 0 ? (
             projects.map((project) => (
               <Link
-                className="rounded-[1.5rem] border border-slate-900/10 bg-[#fffdfa] p-4 text-left no-underline transition hover:border-slate-900/25 hover:shadow-[0_14px_34px_rgba(15,23,42,0.08)]"
+                className="rounded-[1.65rem] border border-slate-900/10 bg-[#fffdfa] p-5 text-left no-underline transition hover:border-slate-900/25 hover:shadow-[0_18px_40px_rgba(15,23,42,0.08)]"
                 href={`/projects/${project.id}?workspaceId=${workspaceId}`}
                 key={project.id}
               >
@@ -78,11 +81,14 @@ export function WorkspaceProjectsPanel({
         </div>
 
         <form
-          className="rounded-[1.5rem] border border-slate-900/10 bg-[#f8f2e6] p-5"
+          className="rounded-[1.85rem] border border-[#c5b8a1] bg-[#f6efe1] p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.45)]"
           onSubmit={onCreateProject}
         >
           <p className="font-mono text-xs uppercase tracking-[0.22em] text-slate-500">
-            New project
+            Project composer
+          </p>
+          <p className="mt-2 text-sm leading-6 text-slate-600">
+            Create a fresh delivery lane without leaving this workspace.
           </p>
           <input
             className="mt-4 w-full rounded-2xl border border-slate-900/10 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-slate-900/30"

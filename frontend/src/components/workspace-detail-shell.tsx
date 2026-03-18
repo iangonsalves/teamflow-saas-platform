@@ -53,6 +53,8 @@ export function WorkspaceDetailShell({
 
   const canManageWorkspace =
     selectedWorkspaceRole === "OWNER" || selectedWorkspaceRole === "ADMIN";
+  const ownerCount = workspaceMembers.filter((member) => member.role === "OWNER").length;
+  const adminCount = workspaceMembers.filter((member) => member.role === "ADMIN").length;
 
   useEffect(() => {
     const accessToken = getAccessToken();
@@ -345,9 +347,9 @@ export function WorkspaceDetailShell({
           <PageBackLink href="/dashboard" label="Back to overview" />
         </div>
 
-        <header className="rounded-[2rem] border border-slate-900/10 bg-white/78 p-6 shadow-[0_25px_80px_rgba(15,23,42,0.09)] backdrop-blur">
-          <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
-            <div className="max-w-3xl">
+        <header className="rounded-[2.25rem] border border-slate-900/10 bg-white/82 p-6 shadow-[0_30px_90px_rgba(15,23,42,0.09)] backdrop-blur">
+          <div className="grid gap-6 xl:grid-cols-[minmax(0,1.1fr)_340px]">
+            <div className="rounded-[2rem] border border-slate-900/10 bg-[linear-gradient(135deg,_#fcfaf5_0%,_#f4ead8_100%)] p-6">
               <p className="font-mono text-xs uppercase tracking-[0.32em] text-slate-500">
                 Workspace detail
               </p>
@@ -355,57 +357,74 @@ export function WorkspaceDetailShell({
                 {workspace?.name ?? "Workspace"}
               </h1>
               <p className="mt-3 text-base leading-7 text-slate-600">
-                Members, invitations, and project planning now live on their own page so the
-                overview can stay readable.
+                This page is now the team operating surface: members, invitations, and project
+                planning in one place, with a clearer hierarchy than the old dashboard.
               </p>
+              <div className="mt-6 grid gap-4 md:grid-cols-4">
+                <div className="rounded-[1.5rem] border border-slate-900/10 bg-white/82 p-4">
+                  <p className="font-mono text-[11px] uppercase tracking-[0.24em] text-slate-500">
+                    Role
+                  </p>
+                  <p className="mt-3 text-lg font-semibold text-slate-900">
+                    {formatRole(selectedWorkspaceRole)}
+                  </p>
+                  <p className="mt-1 text-sm text-slate-600">Your access level here</p>
+                </div>
+                <div className="rounded-[1.5rem] border border-slate-900/10 bg-white/82 p-4">
+                  <p className="font-mono text-[11px] uppercase tracking-[0.24em] text-slate-500">
+                    Members
+                  </p>
+                  <p className="mt-3 text-3xl font-semibold text-slate-900">{workspaceMembers.length}</p>
+                  <p className="mt-1 text-sm text-slate-600">People in this team</p>
+                </div>
+                <div className="rounded-[1.5rem] border border-slate-900/10 bg-white/82 p-4">
+                  <p className="font-mono text-[11px] uppercase tracking-[0.24em] text-slate-500">
+                    Admins
+                  </p>
+                  <p className="mt-3 text-3xl font-semibold text-slate-900">{adminCount}</p>
+                  <p className="mt-1 text-sm text-slate-600">Operational leads</p>
+                </div>
+                <div className="rounded-[1.5rem] border border-slate-900/10 bg-white/82 p-4">
+                  <p className="font-mono text-[11px] uppercase tracking-[0.24em] text-slate-500">
+                    Projects
+                  </p>
+                  <p className="mt-3 text-3xl font-semibold text-slate-900">{projects.length}</p>
+                  <p className="mt-1 text-sm text-slate-600">Delivery lanes in motion</p>
+                </div>
+              </div>
             </div>
-            <div className="flex flex-wrap gap-3">
-              <Link
-                className="inline-flex items-center justify-center rounded-full border border-slate-900/10 bg-white px-5 py-3 text-sm font-medium text-slate-900 no-underline transition hover:bg-slate-50"
-                href="/settings/billing"
-              >
-                Billing
-              </Link>
-              <button
-                className="inline-flex items-center justify-center rounded-full bg-slate-900 px-5 py-3 text-sm font-medium text-white transition hover:bg-slate-700"
-                onClick={handleLogout}
-                type="button"
-              >
-                Log out
-              </button>
-            </div>
-          </div>
 
-          <div className="mt-6 grid gap-4 md:grid-cols-4">
-            <div className="rounded-[1.5rem] border border-slate-900/10 bg-[#f8f2e6] p-4">
-              <p className="font-mono text-[11px] uppercase tracking-[0.24em] text-slate-500">
-                Role
+            <div className="rounded-[2rem] bg-slate-900 p-6 text-slate-50 shadow-[0_24px_80px_rgba(15,23,42,0.16)]">
+              <p className="font-mono text-xs uppercase tracking-[0.24em] text-slate-400">
+                Control
               </p>
-              <p className="mt-3 text-lg font-semibold text-slate-900">
-                {formatRole(selectedWorkspaceRole)}
+              <p className="mt-4 text-2xl font-semibold">Steer the team surface.</p>
+              <p className="mt-3 text-sm leading-7 text-slate-300">
+                Owner: {workspace?.owner.name ?? "Unknown"} · {ownerCount} owner slot · {projects.length} active lanes.
               </p>
-              <p className="mt-1 text-sm text-slate-600">Your access level here</p>
-            </div>
-            <div className="rounded-[1.5rem] border border-slate-900/10 bg-white p-4">
-              <p className="font-mono text-[11px] uppercase tracking-[0.24em] text-slate-500">
-                Members
-              </p>
-              <p className="mt-3 text-3xl font-semibold text-slate-900">{workspaceMembers.length}</p>
-              <p className="mt-1 text-sm text-slate-600">People in this team</p>
-            </div>
-            <div className="rounded-[1.5rem] border border-slate-900/10 bg-white p-4">
-              <p className="font-mono text-[11px] uppercase tracking-[0.24em] text-slate-500">
-                Projects
-              </p>
-              <p className="mt-3 text-3xl font-semibold text-slate-900">{projects.length}</p>
-              <p className="mt-1 text-sm text-slate-600">Delivery lanes in motion</p>
-            </div>
-            <div className="rounded-[1.5rem] border border-slate-900/10 bg-slate-900 p-4 text-slate-50">
-              <p className="font-mono text-[11px] uppercase tracking-[0.24em] text-slate-400">
-                Owner
-              </p>
-              <p className="mt-3 text-lg font-semibold">{workspace?.owner.name ?? "Unknown"}</p>
-              <p className="mt-1 text-sm text-slate-300">{workspace?.owner.email ?? user?.email}</p>
+              <div className="mt-6 grid gap-3">
+                <Link
+                  className="inline-flex items-center justify-center rounded-full border border-white/10 bg-white/10 px-5 py-3 text-sm font-medium text-white no-underline transition hover:bg-white/15"
+                  href="/settings/billing"
+                >
+                  Billing
+                </Link>
+                {projects[0] ? (
+                  <Link
+                    className="inline-flex items-center justify-center rounded-full border border-white/10 bg-transparent px-5 py-3 text-sm font-medium text-white no-underline transition hover:bg-white/10"
+                    href={`/projects/${projects[0].id}?workspaceId=${workspaceId}`}
+                  >
+                    Open latest project
+                  </Link>
+                ) : null}
+                <button
+                  className="inline-flex items-center justify-center rounded-full bg-white px-5 py-3 text-sm font-medium text-slate-900 transition hover:bg-slate-200"
+                  onClick={handleLogout}
+                  type="button"
+                >
+                  Log out
+                </button>
+              </div>
             </div>
           </div>
         </header>
@@ -416,7 +435,7 @@ export function WorkspaceDetailShell({
           </div>
         ) : null}
 
-        <section className="mt-6 grid gap-6 xl:grid-cols-[300px_minmax(0,1fr)]">
+        <section className="mt-6 grid gap-6 xl:grid-cols-[240px_minmax(0,1fr)]">
           <WorkspaceSidebar
             onCreateWorkspace={(name) => {
               void handleCreateWorkspace(name);
@@ -446,7 +465,7 @@ export function WorkspaceDetailShell({
               workspaceName={workspace?.name ?? null}
             />
 
-            <div className="grid gap-6 2xl:grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)]">
+            <div className="grid gap-6 xl:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)]">
               <WorkspaceMembersPanel
                 actionMessage={workspaceActionMessage}
                 canManageWorkspace={canManageWorkspace}

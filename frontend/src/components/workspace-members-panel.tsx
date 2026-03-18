@@ -35,8 +35,8 @@ export function WorkspaceMembersPanel({
   }
 
   return (
-    <section className="rounded-[2rem] border border-slate-900/10 bg-white/82 p-6 shadow-[0_24px_70px_rgba(15,23,42,0.08)] backdrop-blur">
-      <div className="flex items-start justify-between gap-4">
+    <section className="rounded-[2.15rem] border border-slate-900/10 bg-white/84 p-6 shadow-[0_26px_80px_rgba(15,23,42,0.08)] backdrop-blur">
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
         <div>
           <p className="font-mono text-xs uppercase tracking-[0.22em] text-slate-500">
             Team members
@@ -48,25 +48,35 @@ export function WorkspaceMembersPanel({
             Membership and roles live here now, instead of crowding the main dashboard.
           </p>
         </div>
-        {isLoading ? (
-          <span className="rounded-full bg-slate-100 px-3 py-1 text-xs text-slate-500">
-            Updating
+        <div className="flex items-center gap-3">
+          <span className="rounded-full border border-slate-900/10 bg-[#fff7ec] px-3 py-2 text-xs font-medium uppercase tracking-[0.18em] text-[#8d5b28]">
+            {members.length} members
           </span>
-        ) : null}
+          {isLoading ? (
+            <span className="rounded-full bg-slate-100 px-3 py-1 text-xs text-slate-500">
+              Updating
+            </span>
+          ) : null}
+        </div>
       </div>
 
       <div className="mt-5 grid gap-3">
         {members.length > 0 ? (
           members.map((member) => (
             <div
-              className="rounded-[1.5rem] border border-slate-900/10 bg-[#fffdfa] p-4"
+              className="rounded-[1.6rem] border border-slate-900/10 bg-[#fffdfa] p-4 shadow-[0_12px_28px_rgba(15,23,42,0.05)]"
               key={member.id}
             >
               <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
                 <div>
-                  <p className="text-base font-semibold text-slate-900">
-                    {member.user.name}
-                  </p>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <p className="text-base font-semibold text-slate-900">
+                      {member.user.name}
+                    </p>
+                    <span className="rounded-full bg-[#e7f3f0] px-3 py-1 text-[11px] font-medium uppercase tracking-[0.18em] text-slate-700">
+                      {member.role}
+                    </span>
+                  </div>
                   <p className="mt-1 text-sm text-slate-600">{member.user.email}</p>
                 </div>
                 {canManageWorkspace ? (
@@ -93,11 +103,7 @@ export function WorkspaceMembersPanel({
                       Remove
                     </button>
                   </div>
-                ) : (
-                  <span className="rounded-full bg-[#e7f3f0] px-3 py-1 text-[11px] font-medium uppercase tracking-[0.18em] text-slate-700">
-                    {member.role}
-                  </span>
-                )}
+                  ) : null}
               </div>
             </div>
           ))
@@ -115,7 +121,10 @@ export function WorkspaceMembersPanel({
       ) : null}
 
       {canManageWorkspace ? (
-        <form className="mt-5 border-t border-slate-900/10 pt-5" onSubmit={handleAddMember}>
+        <form
+          className="mt-6 rounded-[2rem] border border-[#c5b8a1] bg-[#f6efe1] p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.45)]"
+          onSubmit={handleAddMember}
+        >
           <div className="flex items-end justify-between gap-4">
             <div>
               <p className="font-mono text-xs uppercase tracking-[0.22em] text-slate-500">
