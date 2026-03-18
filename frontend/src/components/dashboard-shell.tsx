@@ -319,7 +319,7 @@ export function DashboardShell() {
           </div>
         ) : null}
 
-        <section className="mt-6 grid gap-6 xl:grid-cols-[300px_minmax(0,1fr)]">
+        <section className="mt-6 grid gap-6 xl:grid-cols-[240px_minmax(0,1fr)]">
           <WorkspaceSidebar
             onCreateWorkspace={(name) => {
               void handleCreateWorkspace(name);
@@ -333,7 +333,7 @@ export function DashboardShell() {
           />
 
           <div className="space-y-6">
-            <section className="rounded-[2rem] border border-slate-900/10 bg-white/80 p-6 shadow-[0_24px_70px_rgba(15,23,42,0.08)] backdrop-blur">
+            <section className="rounded-[2.2rem] border border-slate-900/10 bg-white/82 p-6 shadow-[0_28px_80px_rgba(15,23,42,0.08)] backdrop-blur">
               <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
                 <div className="max-w-3xl">
                   <p className="font-mono text-xs uppercase tracking-[0.22em] text-slate-500">
@@ -345,8 +345,8 @@ export function DashboardShell() {
                       : "Start with a workspace"}
                   </h2>
                   <p className="mt-3 text-sm leading-7 text-slate-600">
-                    The overview is now meant for orientation only: current workspace status,
-                    project entry points, recent task movement, and activity history.
+                    This page is for orientation only: current workspace state, project entry
+                    points, recent movement, and a short audit trail.
                   </p>
                 </div>
                 <div className="flex flex-wrap gap-3">
@@ -370,7 +370,7 @@ export function DashboardShell() {
               </div>
 
               <div className="mt-6 grid gap-4 md:grid-cols-3">
-                <div className="rounded-[1.5rem] border border-slate-900/10 bg-[#fff7ec] p-5">
+                <div className="rounded-[1.6rem] border border-slate-900/10 bg-[#fff7ec] p-5">
                   <p className="font-mono text-[11px] uppercase tracking-[0.24em] text-slate-500">
                     Workspace lane
                   </p>
@@ -381,7 +381,7 @@ export function DashboardShell() {
                     Members, invites, and project planning now live on the workspace page.
                   </p>
                 </div>
-                <div className="rounded-[1.5rem] border border-slate-900/10 bg-white p-5">
+                <div className="rounded-[1.6rem] border border-slate-900/10 bg-white p-5">
                   <p className="font-mono text-[11px] uppercase tracking-[0.24em] text-slate-500">
                     Active projects
                   </p>
@@ -392,7 +392,7 @@ export function DashboardShell() {
                     Focused delivery lanes with separate task-board pages.
                   </p>
                 </div>
-                <div className="rounded-[1.5rem] border border-slate-900/10 bg-slate-900 p-5 text-slate-50">
+                <div className="rounded-[1.6rem] border border-slate-900/10 bg-slate-900 p-5 text-slate-50">
                   <p className="font-mono text-[11px] uppercase tracking-[0.24em] text-slate-400">
                     Recent movement
                   </p>
@@ -405,7 +405,7 @@ export function DashboardShell() {
             </section>
 
             <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
-              <section className="rounded-[2rem] border border-slate-900/10 bg-white/80 p-6 shadow-[0_24px_70px_rgba(15,23,42,0.08)] backdrop-blur">
+              <section className="rounded-[2.1rem] border border-slate-900/10 bg-white/82 p-6 shadow-[0_24px_70px_rgba(15,23,42,0.08)] backdrop-blur">
                 <div className="flex items-end justify-between gap-4">
                   <div>
                     <p className="font-mono text-xs uppercase tracking-[0.22em] text-slate-500">
@@ -456,7 +456,7 @@ export function DashboardShell() {
                 </div>
               </section>
 
-              <section className="rounded-[2rem] border border-slate-900/10 bg-white/80 p-6 shadow-[0_24px_70px_rgba(15,23,42,0.08)] backdrop-blur">
+              <section className="rounded-[2.1rem] border border-slate-900/10 bg-white/82 p-6 shadow-[0_24px_70px_rgba(15,23,42,0.08)] backdrop-blur">
                 <div className="flex items-end justify-between gap-4">
                   <div>
                     <p className="font-mono text-xs uppercase tracking-[0.22em] text-slate-500">
@@ -503,7 +503,7 @@ export function DashboardShell() {
               </section>
             </div>
 
-            <section className="rounded-[2rem] border border-slate-900/10 bg-white/80 p-6 shadow-[0_24px_70px_rgba(15,23,42,0.08)] backdrop-blur">
+            <section className="rounded-[2.1rem] border border-slate-900/10 bg-white/82 p-6 shadow-[0_24px_70px_rgba(15,23,42,0.08)] backdrop-blur">
               <div className="flex items-end justify-between gap-4">
                 <div>
                   <p className="font-mono text-xs uppercase tracking-[0.22em] text-slate-500">

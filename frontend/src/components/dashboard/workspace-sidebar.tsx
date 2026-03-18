@@ -34,15 +34,15 @@ export function WorkspaceSidebar({
   }
 
   return (
-    <div className="space-y-6">
-      <section className="rounded-[2rem] border border-slate-900/10 bg-white/78 p-6 shadow-[0_24px_70px_rgba(15,23,42,0.08)] backdrop-blur">
+    <div className="space-y-6 xl:sticky xl:top-8">
+      <section className="rounded-[2rem] border border-slate-900/10 bg-white/80 p-5 shadow-[0_24px_70px_rgba(15,23,42,0.08)] backdrop-blur">
         <div className="flex items-start justify-between gap-4">
           <div>
             <p className="font-mono text-xs uppercase tracking-[0.22em] text-slate-500">
               Workspaces
             </p>
             <p className="mt-2 text-sm leading-6 text-slate-600">
-              Choose the team context, then jump into a focused workspace page.
+              Switch the active team, then step into a dedicated workspace view when needed.
             </p>
           </div>
           {workspaceLoading ? (
@@ -130,7 +130,7 @@ export function WorkspaceSidebar({
         </div>
       ) : null}
 
-      <section className="rounded-[2rem] border border-slate-900/10 bg-white/78 p-6 shadow-[0_24px_70px_rgba(15,23,42,0.08)] backdrop-blur">
+      <section className="rounded-[2rem] border border-slate-900/10 bg-[linear-gradient(180deg,_#e7f3f0_0%,_#f4fbf9_100%)] p-5 shadow-[0_18px_50px_rgba(42,157,143,0.10)]">
         <p className="font-mono text-xs uppercase tracking-[0.22em] text-slate-500">
           Current user
         </p>
