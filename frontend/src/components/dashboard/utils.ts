@@ -46,3 +46,15 @@ export function getStatusCardClasses(status: TaskStatus) {
 
   return "bg-white";
 }
+
+export function formatAuditAction(action: string) {
+  return action
+    .split(".")
+    .map((segment) =>
+      segment
+        .split("_")
+        .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+        .join(" "),
+    )
+    .join(" · ");
+}
