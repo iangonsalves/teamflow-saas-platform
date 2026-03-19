@@ -132,7 +132,8 @@ export function AuthForm({ mode }: AuthFormProps) {
             : "Sign in"}
       </button>
 
-      <p className="text-sm text-slate-600">
+      <div className="rounded-[1.5rem] border border-slate-900/10 bg-[#f8f2e6] px-4 py-4 text-sm text-slate-600">
+        <p>
         {isRegister ? "Already have an account? " : "Need an account? "}
         <Link
           className="font-medium text-slate-900 underline decoration-slate-300 underline-offset-4"
@@ -140,7 +141,8 @@ export function AuthForm({ mode }: AuthFormProps) {
         >
           {isRegister ? "Log in" : "Register"}
         </Link>
-      </p>
+        </p>
+      </div>
     </form>
   );
 }

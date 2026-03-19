@@ -206,54 +206,88 @@ export function BillingShell() {
   }
 
   return (
-    <main className="min-h-screen bg-[radial-gradient(circle_at_top_left,_rgba(33,158,188,0.16),_transparent_28%),radial-gradient(circle_at_bottom_right,_rgba(244,162,97,0.24),_transparent_30%),linear-gradient(180deg,_#f7f1e7_0%,_#efe7d8_100%)] px-6 py-8 text-slate-900 sm:px-8">
+    <main className="min-h-screen bg-[radial-gradient(circle_at_top_left,_rgba(42,157,143,0.16),_transparent_24%),radial-gradient(circle_at_bottom_right,_rgba(231,111,81,0.14),_transparent_30%),linear-gradient(180deg,_#f8f3ea_0%,_#efe4d3_100%)] px-6 py-8 text-slate-900 sm:px-8">
       <section className="mx-auto max-w-5xl">
         <div className="mb-6">
           <PageBackLink href="/dashboard" label="Back to dashboard" />
         </div>
-        <header className="rounded-[2rem] border border-slate-900/10 bg-white/72 p-6 shadow-[0_25px_80px_rgba(15,23,42,0.09)] backdrop-blur">
-          <p className="font-mono text-xs uppercase tracking-[0.32em] text-slate-500">
-            TeamFlow Billing
-          </p>
-          <h1 className="mt-3 text-4xl font-semibold tracking-tight">
-            Subscription management
-          </h1>
-          <p className="mt-3 max-w-3xl text-base leading-7 text-slate-600">
-            This page is ready for Stripe test mode. Once your real Stripe test
-            keys and price IDs are added to the environment, the plan buttons
-            will create real checkout sessions.
-          </p>
-          <div className="mt-6 grid gap-4 md:grid-cols-3">
-            <div className="rounded-[1.5rem] border border-slate-900/10 bg-[#f8f2e6] p-4">
-              <p className="font-mono text-[11px] uppercase tracking-[0.24em] text-slate-500">
-                Workspace
+        <header className="rounded-[2.25rem] border border-slate-900/10 bg-white/82 p-6 shadow-[0_30px_90px_rgba(15,23,42,0.09)] backdrop-blur">
+          <div className="grid gap-6 xl:grid-cols-[minmax(0,1.1fr)_340px]">
+            <div className="rounded-[2rem] border border-slate-900/10 bg-[linear-gradient(135deg,_#fcfaf5_0%,_#f4ead8_100%)] p-6">
+              <p className="font-mono text-xs uppercase tracking-[0.32em] text-slate-500">
+                TeamFlow Billing
               </p>
-              <p className="mt-3 text-lg font-semibold text-slate-900">
-                {workspace?.name ?? "No workspace"}
+              <h1 className="mt-3 text-4xl font-semibold tracking-tight">
+                Subscription management
+              </h1>
+              <p className="mt-3 max-w-3xl text-base leading-7 text-slate-600">
+                Manage the paid layer of the workspace without leaving the product surface. Stripe
+                handles checkout and the customer portal, while this page stays focused on state,
+                plan choices, and invoice history.
               </p>
-              <p className="mt-1 text-sm text-slate-600">
-                Billing context for this page
-              </p>
+              <div className="mt-6 grid gap-4 md:grid-cols-3">
+                <div className="rounded-[1.5rem] border border-slate-900/10 bg-white/82 p-4">
+                  <p className="font-mono text-[11px] uppercase tracking-[0.24em] text-slate-500">
+                    Workspace
+                  </p>
+                  <p className="mt-3 text-lg font-semibold text-slate-900">
+                    {workspace?.name ?? "No workspace"}
+                  </p>
+                  <p className="mt-1 text-sm text-slate-600">
+                    Billing context for this page
+                  </p>
+                </div>
+                <div className="rounded-[1.5rem] border border-slate-900/10 bg-white/82 p-4">
+                  <p className="font-mono text-[11px] uppercase tracking-[0.24em] text-slate-500">
+                    Plan
+                  </p>
+                  <p className="mt-3 text-lg font-semibold text-slate-900">
+                    {subscription?.plan ?? "FREE"}
+                  </p>
+                  <p className="mt-1 text-sm text-slate-600">
+                    Current subscription plan
+                  </p>
+                </div>
+                <div className="rounded-[1.5rem] border border-slate-900/10 bg-white/82 p-4">
+                  <p className="font-mono text-[11px] uppercase tracking-[0.24em] text-slate-500">
+                    Invoices
+                  </p>
+                  <p className="mt-3 text-3xl font-semibold text-slate-900">{invoices.length}</p>
+                  <p className="mt-1 text-sm text-slate-600">
+                    Recent billing records available
+                  </p>
+                </div>
+              </div>
             </div>
-            <div className="rounded-[1.5rem] border border-slate-900/10 bg-white p-4">
-              <p className="font-mono text-[11px] uppercase tracking-[0.24em] text-slate-500">
-                Plan
+
+            <div className="rounded-[2rem] bg-slate-900 p-6 text-slate-50 shadow-[0_24px_80px_rgba(15,23,42,0.16)]">
+              <p className="font-mono text-xs uppercase tracking-[0.24em] text-slate-400">
+                Control
               </p>
-              <p className="mt-3 text-lg font-semibold text-slate-900">
-                {subscription?.plan ?? "FREE"}
+              <p className="mt-4 text-2xl font-semibold">Manage the paid layer.</p>
+              <p className="mt-3 text-sm leading-7 text-slate-300">
+                {subscription?.stripeCustomerId
+                  ? "The Stripe customer is ready, so portal access is available."
+                  : "Run one successful checkout to create the Stripe customer, then unlock the portal."}
               </p>
-              <p className="mt-1 text-sm text-slate-600">
-                Current subscription plan
-              </p>
-            </div>
-            <div className="rounded-[1.5rem] border border-slate-900/10 bg-slate-900 p-4 text-slate-50">
-              <p className="font-mono text-[11px] uppercase tracking-[0.24em] text-slate-400">
-                Invoices
-              </p>
-              <p className="mt-3 text-3xl font-semibold">{invoices.length}</p>
-              <p className="mt-1 text-sm text-slate-300">
-                Recent billing records available
-              </p>
+              <div className="mt-6 grid gap-3">
+                <button
+                  className="rounded-full border border-white/10 bg-white/10 px-5 py-3 text-sm font-medium text-white transition hover:bg-white/15 disabled:cursor-not-allowed disabled:opacity-60"
+                  disabled={!workspace || !subscription?.stripeCustomerId || isSubmitting !== null}
+                  onClick={() => void handlePortalOpen()}
+                  type="button"
+                >
+                  {isSubmitting === "PORTAL" ? "Opening portal..." : "Manage subscription"}
+                </button>
+                <button
+                  className="rounded-full bg-white px-5 py-3 text-sm font-medium text-slate-900 transition hover:bg-slate-200 disabled:cursor-not-allowed disabled:bg-slate-400"
+                  disabled={!workspace || isSubmitting !== null}
+                  onClick={() => void handleCheckout("PRO")}
+                  type="button"
+                >
+                  {isSubmitting === "PRO" ? "Starting checkout..." : "Upgrade to Pro"}
+                </button>
+              </div>
             </div>
           </div>
         </header>
@@ -278,7 +312,7 @@ export function BillingShell() {
         ) : null}
 
         <section className="mt-6 grid gap-6 lg:grid-cols-[0.9fr_1.1fr]">
-          <div className="rounded-[2rem] border border-slate-900/10 bg-white/72 p-6 backdrop-blur">
+          <div className="rounded-[2.1rem] border border-slate-900/10 bg-white/82 p-6 shadow-[0_24px_70px_rgba(15,23,42,0.08)] backdrop-blur">
             <div className="flex items-start justify-between gap-4">
               <div>
                 <p className="font-mono text-xs uppercase tracking-[0.22em] text-slate-500">
@@ -297,7 +331,7 @@ export function BillingShell() {
               </span>
             </div>
 
-            <div className="mt-5 rounded-2xl bg-slate-900 p-5 text-slate-50">
+            <div className="mt-5 rounded-[1.75rem] bg-slate-900 p-5 text-slate-50">
               <p className="text-xl font-semibold">{subscription?.plan ?? "FREE"}</p>
               <p className="mt-2 text-sm text-slate-300">
                 Workspace: {workspace?.name ?? "No workspace loaded"}
@@ -308,22 +342,9 @@ export function BillingShell() {
             </div>
 
             <div className="mt-4 flex flex-wrap gap-3">
-              <button
-                className="rounded-full border border-slate-900/10 bg-white px-5 py-3 text-sm font-medium text-slate-900 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
-                disabled={!workspace || !subscription?.stripeCustomerId || isSubmitting !== null}
-                onClick={() => void handlePortalOpen()}
-                type="button"
-              >
-                {isSubmitting === "PORTAL" ? "Opening portal..." : "Manage subscription"}
-              </button>
-              <button
-                className="rounded-full bg-slate-900 px-5 py-3 text-sm font-medium text-white transition hover:bg-slate-700 disabled:cursor-not-allowed disabled:bg-slate-400"
-                disabled={!workspace || isSubmitting !== null}
-                onClick={() => void handleCheckout("PRO")}
-                type="button"
-              >
-                {isSubmitting === "PRO" ? "Starting checkout..." : "Upgrade to Pro"}
-              </button>
+              <span className="rounded-full bg-[#edf8f5] px-3 py-1 text-xs font-medium uppercase tracking-[0.18em] text-[#1f6c63]">
+                {subscription?.status ?? "INACTIVE"}
+              </span>
             </div>
             {!subscription?.stripeCustomerId ? (
               <p className="mt-3 text-sm text-slate-600">
@@ -335,7 +356,7 @@ export function BillingShell() {
           <div className="grid gap-4">
             {plans.map((plan) => (
               <div
-                className="rounded-[2rem] border border-slate-900/10 bg-white/72 p-6 backdrop-blur"
+                className="rounded-[2.1rem] border border-slate-900/10 bg-white/82 p-6 shadow-[0_24px_70px_rgba(15,23,42,0.08)] backdrop-blur"
                 key={plan.id}
               >
                 <p className="font-mono text-xs uppercase tracking-[0.22em] text-slate-500">
@@ -360,7 +381,7 @@ export function BillingShell() {
           </div>
         </section>
 
-        <section className="mt-6 rounded-[2rem] border border-slate-900/10 bg-white/72 p-6 backdrop-blur">
+        <section className="mt-6 rounded-[2.1rem] border border-slate-900/10 bg-white/82 p-6 shadow-[0_24px_70px_rgba(15,23,42,0.08)] backdrop-blur">
           <div className="flex items-center justify-between gap-4">
             <div>
               <p className="font-mono text-xs uppercase tracking-[0.22em] text-slate-500">

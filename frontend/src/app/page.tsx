@@ -2,7 +2,7 @@ import Link from "next/link";
 
 export default function Home() {
   return (
-    <main className="min-h-screen bg-[radial-gradient(circle_at_top_left,_rgba(244,162,97,0.35),_transparent_30%),radial-gradient(circle_at_bottom_right,_rgba(42,157,143,0.28),_transparent_30%),linear-gradient(180deg,_#f8f4ec_0%,_#f4efe5_100%)] text-slate-900">
+    <main className="min-h-screen bg-[radial-gradient(circle_at_top_left,_rgba(244,162,97,0.24),_transparent_28%),radial-gradient(circle_at_bottom_right,_rgba(42,157,143,0.22),_transparent_30%),linear-gradient(180deg,_#f8f3ea_0%,_#efe4d3_100%)] text-slate-900">
       <section className="mx-auto flex min-h-screen max-w-6xl flex-col justify-between px-6 py-10 sm:px-10 lg:px-12">
         <header className="flex items-center justify-between">
           <div>
@@ -18,8 +18,9 @@ export default function Home() {
           </div>
         </header>
 
-        <section className="grid gap-8 lg:grid-cols-[1.25fr_0.9fr] lg:items-end">
-          <div className="space-y-6">
+        <section className="grid gap-8 lg:grid-cols-[1.15fr_0.85fr] lg:items-end">
+          <div className="rounded-[2.1rem] border border-slate-900/10 bg-[linear-gradient(135deg,_#fcfaf5_0%,_#f4ead8_100%)] p-6 shadow-[0_24px_70px_rgba(15,23,42,0.06)]">
+            <div className="space-y-6">
             <p className="max-w-2xl text-lg leading-8 text-slate-700 sm:text-xl">
               TeamFlow is a multi-tenant SaaS platform for workspaces, projects,
               and task execution. This setup branch establishes the frontend,
@@ -47,9 +48,36 @@ export default function Home() {
                 View dashboard
               </Link>
             </div>
+            <div className="grid gap-3 sm:grid-cols-3">
+              <div className="rounded-2xl border border-slate-900/10 bg-white/72 p-4">
+                <p className="font-mono text-xs uppercase tracking-[0.2em] text-slate-500">
+                  Overview
+                </p>
+                <p className="mt-2 text-sm leading-6 text-slate-700">
+                  Light dashboard for orientation, then deeper workspace and project pages.
+                </p>
+              </div>
+              <div className="rounded-2xl border border-slate-900/10 bg-white/72 p-4">
+                <p className="font-mono text-xs uppercase tracking-[0.2em] text-slate-500">
+                  Workspace
+                </p>
+                <p className="mt-2 text-sm leading-6 text-slate-700">
+                  Team members, invitations, and project planning in one operational surface.
+                </p>
+              </div>
+              <div className="rounded-2xl border border-slate-900/10 bg-white/72 p-4">
+                <p className="font-mono text-xs uppercase tracking-[0.2em] text-slate-500">
+                  Project
+                </p>
+                <p className="mt-2 text-sm leading-6 text-slate-700">
+                  Dedicated board for task movement, editing, assignment, and delivery flow.
+                </p>
+              </div>
+            </div>
+            </div>
           </div>
 
-          <div className="grid gap-4 rounded-[2rem] border border-slate-900/10 bg-white/70 p-6 shadow-[0_30px_80px_rgba(15,23,42,0.08)] backdrop-blur">
+          <div className="grid gap-4 rounded-[2.1rem] border border-slate-900/10 bg-white/80 p-6 shadow-[0_30px_80px_rgba(15,23,42,0.08)] backdrop-blur">
             <div className="rounded-2xl bg-slate-900 p-5 text-slate-50">
               <p className="font-mono text-xs uppercase tracking-[0.25em] text-slate-300">
                 Core stack
@@ -89,6 +117,15 @@ export default function Home() {
                   Invitations, Stripe billing, premium gating, and richer activity.
                 </p>
               </div>
+            </div>
+            <div className="rounded-2xl border border-slate-900/10 bg-white p-4">
+              <p className="font-mono text-xs uppercase tracking-[0.2em] text-slate-500">
+                Guided flow
+              </p>
+              <p className="mt-2 text-sm leading-6 text-slate-700">
+                Start with auth, move into the overview, then drill into workspace and project pages
+                only when you need to manage real activity.
+              </p>
             </div>
           </div>
         </section>
