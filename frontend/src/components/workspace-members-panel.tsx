@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { WorkspaceMember, WorkspaceRole } from "./dashboard/types";
+import { useToast } from "./ui/toast-provider";
 
 type WorkspaceMembersPanelProps = {
   workspaceName: string | null;
@@ -24,6 +25,7 @@ export function WorkspaceMembersPanel({
   onUpdateWorkspaceMemberRole,
   onRemoveWorkspaceMember,
 }: WorkspaceMembersPanelProps) {
+  const { showToast } = useToast();
   const [memberEmail, setMemberEmail] = useState("");
   const [memberRole, setMemberRole] = useState<WorkspaceRole>("MEMBER");
 
@@ -34,8 +36,14 @@ export function WorkspaceMembersPanel({
     setMemberRole("MEMBER");
   }
 
+  useEffect(() => {
+    if (actionMessage) {
+      showToast(actionMessage, "success");
+    }
+  }, [actionMessage, showToast]);
+
   return (
-    <section className="rounded-[2.15rem] border border-slate-900/10 bg-white/84 p-6 shadow-[0_26px_80px_rgba(15,23,42,0.08)] backdrop-blur">
+    <section className="rounded-[2.15rem] border border-slate-200 bg-white p-6 shadow-md">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
         <div>
           <p className="font-mono text-xs uppercase tracking-[0.22em] text-slate-500">
@@ -63,10 +71,7 @@ export function WorkspaceMembersPanel({
       <div className="mt-5 grid gap-3">
         {members.length > 0 ? (
           members.map((member) => (
-            <div
-              className="rounded-[1.6rem] border border-slate-900/10 bg-[#fffdfa] p-4 shadow-[0_12px_28px_rgba(15,23,42,0.05)]"
-              key={member.id}
-            >
+            <div className="rounded-[1.6rem] border border-slate-200 bg-slate-50 p-4 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg" key={member.id}>
               <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
                 <div>
                   <div className="flex flex-wrap items-center gap-2">
@@ -96,8 +101,11 @@ export function WorkspaceMembersPanel({
                       <option value="MEMBER">MEMBER</option>
                     </select>
                     <button
-                      className="rounded-full border border-[#e76f51]/25 bg-[#fff0eb] px-3 py-2 text-[11px] font-medium uppercase tracking-[0.18em] text-[#a13f24] transition hover:bg-[#ffe6de]"
-                      onClick={() => onRemoveWorkspaceMember(member.user.id)}
+                      className="tf-btn-danger px-3 py-2 text-[11px]"
+                      onClick={() => {
+                        showToast(`Removing ${member.user.name}...`, "info");
+                        onRemoveWorkspaceMember(member.user.id);
+                      }}
                       type="button"
                     >
                       Remove
@@ -108,8 +116,11 @@ export function WorkspaceMembersPanel({
             </div>
           ))
         ) : (
-          <div className="rounded-[1.5rem] border border-dashed border-slate-900/15 bg-[#fffdfa] px-5 py-8 text-sm text-slate-600">
-            No members found for this workspace yet.
+          <div className="tf-empty-state rounded-[1.5rem] px-5 py-8 text-center text-sm text-slate-600">
+            <p className="text-lg font-semibold text-slate-900">No members found</p>
+            <p className="mt-2">
+              Add the first teammate here to start assigning work across projects.
+            </p>
           </div>
         )}
       </div>
@@ -122,7 +133,7 @@ export function WorkspaceMembersPanel({
 
       {canManageWorkspace ? (
         <form
-          className="mt-6 rounded-[2rem] border border-[#c5b8a1] bg-[#f6efe1] p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.45)]"
+          className="mt-6 rounded-[2rem] border border-slate-200 bg-slate-50 p-5 shadow-sm"
           onSubmit={handleAddMember}
         >
           <div className="flex items-end justify-between gap-4">
@@ -154,11 +165,18 @@ export function WorkspaceMembersPanel({
               <option value="OWNER">Owner</option>
             </select>
             <button
-              className="rounded-full bg-slate-900 px-5 py-3 text-sm font-medium text-white transition hover:bg-slate-700 disabled:cursor-not-allowed disabled:bg-slate-400"
+              className="tf-btn-primary"
               disabled={isLoading}
               type="submit"
             >
-              {isLoading ? "Saving..." : "Add member"}
+              {isLoading ? (
+                <>
+                  <span className="tf-spinner mr-2" />
+                  Saving...
+                </>
+              ) : (
+                "Add member"
+              )}
             </button>
           </div>
         </form>

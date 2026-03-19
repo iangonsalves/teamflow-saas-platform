@@ -112,7 +112,7 @@ export function TaskBoard({
           ) : null}
           {canCreateTask ? (
             <button
-              className="rounded-full bg-slate-900 px-5 py-3 text-sm font-medium text-white transition hover:bg-slate-700"
+              className="tf-btn-primary"
               onClick={() => setComposerOpen((current) => !current)}
               type="button"
             >
@@ -189,12 +189,15 @@ export function TaskBoard({
                   </option>
                 ))}
               </select>
-              <button
-                className="rounded-full bg-slate-900 px-5 py-3 text-sm font-medium text-white transition hover:bg-slate-700 disabled:cursor-not-allowed disabled:bg-slate-400"
-                disabled={!canCreateTask || submittingTask}
-                type="submit"
-              >
-                {submittingTask ? "Adding task..." : "Create task"}
+              <button className="tf-btn-primary" disabled={!canCreateTask || submittingTask} type="submit">
+                {submittingTask ? (
+                  <>
+                    <span className="tf-spinner mr-2" />
+                    Adding task...
+                  </>
+                ) : (
+                  "Create task"
+                )}
               </button>
             </div>
           </div>
@@ -227,10 +230,7 @@ export function TaskBoard({
               <div className="mt-4 grid gap-3">
                 {tasksForStatus.length > 0 ? (
                   tasksForStatus.map((task) => (
-                    <div
-                      className="rounded-[1.6rem] border border-slate-900/10 bg-white p-4 shadow-[0_16px_30px_rgba(15,23,42,0.08)]"
-                      key={task.id}
-                    >
+                    <div className="rounded-[1.6rem] border border-slate-200 bg-white p-4 shadow-md transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg" key={task.id}>
                       {editingTaskId === task.id ? (
                         <div className="space-y-4">
                           <input
@@ -273,18 +273,10 @@ export function TaskBoard({
                             </select>
                           </div>
                           <div className="flex gap-3">
-                            <button
-                              className="rounded-full bg-slate-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-slate-700"
-                              onClick={() => onSaveTaskEdit(task.id)}
-                              type="button"
-                            >
+                            <button className="tf-btn-primary px-4 py-2 text-sm" onClick={() => onSaveTaskEdit(task.id)} type="button">
                               Save
                             </button>
-                            <button
-                              className="rounded-full border border-slate-900/10 bg-white px-4 py-2 text-sm font-medium text-slate-900 transition hover:bg-slate-50"
-                              onClick={onCancelEditingTask}
-                              type="button"
-                            >
+                            <button className="tf-btn-secondary px-4 py-2 text-sm" onClick={onCancelEditingTask} type="button">
                               Cancel
                             </button>
                           </div>
@@ -358,7 +350,7 @@ export function TaskBoard({
                           {canManageWorkspace ? (
                             <div className="mt-4 flex justify-end">
                               <button
-                                className="rounded-full border border-slate-900/10 bg-white px-4 py-2 text-sm font-medium text-slate-900 transition hover:bg-slate-50"
+                                className="tf-btn-secondary px-4 py-2 text-sm"
                                 onClick={() => onStartEditingTask(task)}
                                 type="button"
                               >
@@ -371,8 +363,13 @@ export function TaskBoard({
                     </div>
                   ))
                 ) : (
-                  <div className="rounded-[1.5rem] border border-dashed border-slate-900/15 bg-white/75 px-4 py-8 text-sm text-slate-600">
-                    No tasks in {formatStatus(status).toLowerCase()}.
+                  <div className="tf-empty-state rounded-[1.5rem] px-4 py-8 text-center text-sm text-slate-600">
+                    <p className="text-base font-semibold text-slate-900">No tasks in {formatStatus(status).toLowerCase()}</p>
+                    <p className="mt-2">
+                      {status === "TODO"
+                        ? "Create a task to seed this lane and start the board."
+                        : `Move work into ${formatStatus(status).toLowerCase()} when progress changes.`}
+                    </p>
                   </div>
                 )}
               </div>

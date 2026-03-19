@@ -27,9 +27,7 @@ export function AuthShell({
       <section className="mx-auto grid min-h-[calc(100vh-5rem)] max-w-6xl gap-8 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
         <div className="rounded-[2rem] border border-slate-900/10 bg-[linear-gradient(135deg,_#fcfaf5_0%,_#f4ead8_100%)] p-6 shadow-[0_24px_70px_rgba(15,23,42,0.06)]">
           <div className="space-y-6">
-          <p className="font-mono text-xs uppercase tracking-[0.32em] text-slate-600">
-            {eyebrow}
-          </p>
+          <p className="tf-brand-chip">{eyebrow}</p>
           <h1 className="max-w-xl text-5xl font-semibold tracking-tight sm:text-6xl">
             {title}
           </h1>
