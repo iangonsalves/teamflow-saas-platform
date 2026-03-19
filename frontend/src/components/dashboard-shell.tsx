@@ -366,6 +366,11 @@ export function DashboardShell() {
                       Open active project
                     </Link>
                   ) : null}
+                  {!selectedWorkspace ? (
+                    <span className="rounded-full border border-slate-900/10 bg-white px-4 py-2 text-sm text-slate-600">
+                      Create a workspace from the rail to unlock the rest of the app.
+                    </span>
+                  ) : null}
                 </div>
               </div>
 
@@ -450,7 +455,7 @@ export function DashboardShell() {
                     ))
                   ) : (
                     <div className="rounded-[1.5rem] border border-dashed border-slate-900/15 bg-[#fffdfa] px-5 py-8 text-sm text-slate-600">
-                      No projects yet. Create one from the workspace page instead of the overview.
+                      No projects yet. Open the workspace page and create the first delivery lane there.
                     </div>
                   )}
                 </div>
@@ -496,7 +501,7 @@ export function DashboardShell() {
                     ))
                   ) : (
                     <div className="rounded-[1.5rem] border border-dashed border-slate-900/15 bg-[#fffdfa] px-5 py-8 text-sm text-slate-600">
-                      Recent tasks will appear here once projects start moving.
+                      Recent tasks will appear here once a project board starts moving.
                     </div>
                   )}
                 </div>
@@ -544,7 +549,7 @@ export function DashboardShell() {
                   ))
                 ) : (
                   <div className="rounded-[1.5rem] border border-dashed border-slate-900/15 bg-[#fffdfa] px-5 py-8 text-sm text-slate-600">
-                    Activity history will appear here as the team uses the workspace.
+                    Activity history will appear here once the workspace starts seeing member, project, or task changes.
                   </div>
                 )}
               </div>
