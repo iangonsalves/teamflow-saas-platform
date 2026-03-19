@@ -8,6 +8,7 @@ import {
   type AuthResponse,
   persistAuthSession,
 } from "@/lib/auth-storage";
+import { useToast } from "./ui/toast-provider";
 
 type AuthFormMode = "login" | "register";
 
@@ -17,6 +18,7 @@ type AuthFormProps = {
 
 export function AuthForm({ mode }: AuthFormProps) {
   const router = useRouter();
+  const { showToast } = useToast();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -44,14 +46,16 @@ export function AuthForm({ mode }: AuthFormProps) {
       );
 
       persistAuthSession(payload);
+      showToast(isRegister ? "Account created. Redirecting to dashboard." : "Signed in successfully.", "success");
 
       startTransition(() => {
         router.push("/dashboard");
       });
     } catch (error) {
-      setErrorMessage(
-        error instanceof Error ? error.message : "Authentication failed.",
-      );
+      const message =
+        error instanceof Error ? error.message : "Authentication failed.";
+      setErrorMessage(message);
+      showToast(message, "error");
     } finally {
       setIsSubmitting(false);
     }
@@ -121,15 +125,20 @@ export function AuthForm({ mode }: AuthFormProps) {
       ) : null}
 
       <button
-        className="inline-flex w-full items-center justify-center rounded-full bg-slate-900 px-6 py-3 text-sm font-medium text-white transition hover:bg-slate-700 disabled:cursor-not-allowed disabled:bg-slate-400"
+        className="tf-btn-primary w-full"
         disabled={isSubmitting}
         type="submit"
       >
-        {isSubmitting
-          ? "Submitting..."
-          : isRegister
-            ? "Create account"
-            : "Sign in"}
+        {isSubmitting ? (
+          <>
+            <span className="tf-spinner mr-2" />
+            Submitting...
+          </>
+        ) : isRegister ? (
+          "Create account"
+        ) : (
+          "Sign in"
+        )}
       </button>
 
       <div className="rounded-[1.5rem] border border-slate-900/10 bg-[#f8f2e6] px-4 py-4 text-sm text-slate-600">

@@ -1,7 +1,9 @@
 "use client";
 
 import Link from "next/link";
+import { useEffect } from "react";
 import type { ProjectSummary } from "./dashboard/types";
+import { useToast } from "./ui/toast-provider";
 
 type WorkspaceProjectsPanelProps = {
   workspaceId: string;
@@ -30,8 +32,16 @@ export function WorkspaceProjectsPanel({
   onProjectDescriptionChange,
   onCreateProject,
 }: WorkspaceProjectsPanelProps) {
+  const { showToast } = useToast();
+
+  useEffect(() => {
+    if (projectActionMessage) {
+      showToast(projectActionMessage, "success");
+    }
+  }, [projectActionMessage, showToast]);
+
   return (
-    <section className="rounded-[2.15rem] border border-slate-900/10 bg-white/84 p-6 shadow-[0_30px_90px_rgba(15,23,42,0.08)] backdrop-blur">
+    <section className="rounded-[2.15rem] border border-slate-200 bg-white p-6 shadow-md">
       <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
         <div>
           <p className="font-mono text-xs uppercase tracking-[0.22em] text-slate-500">
@@ -44,7 +54,7 @@ export function WorkspaceProjectsPanel({
             This is the planning surface for the workspace. Open any project to move into its dedicated board.
           </p>
         </div>
-        <div className="rounded-full border border-slate-900/10 bg-[#fff7ec] px-4 py-2 text-sm text-[#8d5b28]">
+        <div className="rounded-full border border-blue-200 bg-blue-50 px-4 py-2 text-sm text-blue-700">
           {projects.length} active {projects.length === 1 ? "project" : "projects"}
         </div>
       </div>
@@ -54,7 +64,7 @@ export function WorkspaceProjectsPanel({
           {projects.length > 0 ? (
             projects.map((project) => (
               <Link
-                className="rounded-[1.65rem] border border-slate-900/10 bg-[#fffdfa] p-5 text-left no-underline transition hover:border-slate-900/25 hover:shadow-[0_18px_40px_rgba(15,23,42,0.08)]"
+                className="rounded-[1.65rem] border border-slate-200 bg-slate-50 p-5 text-left no-underline transition-all duration-200 hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-lg"
                 href={`/projects/${project.id}?workspaceId=${workspaceId}`}
                 key={project.id}
               >
@@ -67,21 +77,24 @@ export function WorkspaceProjectsPanel({
                       {project.description || "No description yet."}
                     </p>
                   </div>
-                  <span className="rounded-full bg-slate-900 px-3 py-1 text-[11px] uppercase tracking-[0.18em] text-white">
+                  <span className="rounded-full bg-blue-600 px-3 py-1 text-[11px] uppercase tracking-[0.18em] text-white">
                     Open
                   </span>
                 </div>
               </Link>
             ))
           ) : (
-            <div className="rounded-[1.5rem] border border-dashed border-slate-900/15 bg-[#fffdfa] px-5 py-8 text-sm text-slate-600">
-              No projects yet in this workspace. Create the first one to give your team a track to work in.
+            <div className="tf-empty-state rounded-[1.5rem] px-5 py-8 text-center text-sm text-slate-600">
+              <p className="text-lg font-semibold text-slate-900">No projects yet</p>
+              <p className="mt-2">
+                Create the first delivery lane so this workspace has somewhere to move work.
+              </p>
             </div>
           )}
         </div>
 
         <form
-          className="rounded-[1.85rem] border border-[#c5b8a1] bg-[#f6efe1] p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.45)]"
+          className="rounded-[1.85rem] border border-slate-200 bg-slate-50 p-5 shadow-sm"
           onSubmit={onCreateProject}
         >
           <p className="font-mono text-xs uppercase tracking-[0.22em] text-slate-500">
@@ -106,11 +119,18 @@ export function WorkspaceProjectsPanel({
             value={projectDescription}
           />
           <button
-            className="mt-4 w-full rounded-full bg-slate-900 px-5 py-3 text-sm font-medium text-white transition hover:bg-slate-700 disabled:cursor-not-allowed disabled:bg-slate-400"
+            className="tf-btn-primary mt-4 w-full"
             disabled={!canManageWorkspace || submittingProject}
             type="submit"
           >
-            {submittingProject ? "Creating project..." : "Create project"}
+            {submittingProject ? (
+              <>
+                <span className="tf-spinner mr-2" />
+                Creating project...
+              </>
+            ) : (
+              "Create project"
+            )}
           </button>
           <p className="mt-3 text-sm text-slate-600">
             {canManageWorkspace

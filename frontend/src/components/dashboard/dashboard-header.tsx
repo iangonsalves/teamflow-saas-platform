@@ -26,10 +26,8 @@ export function DashboardHeader({
   return (
     <header className="rounded-[2.25rem] border border-slate-900/10 bg-white/82 p-6 shadow-[0_30px_90px_rgba(15,23,42,0.09)] backdrop-blur">
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1.1fr)_340px]">
-        <div className="rounded-[2rem] border border-slate-900/10 bg-[linear-gradient(135deg,_#fcfaf5_0%,_#f4ead8_100%)] p-6">
-          <p className="font-mono text-xs uppercase tracking-[0.32em] text-slate-500">
-            TeamFlow Operations
-          </p>
+        <div className="tf-hero rounded-[2rem] p-6">
+          <p className="tf-brand-chip">TeamFlow Operations</p>
           <h1 className="mt-3 text-4xl font-semibold tracking-tight">
             {user ? `${user.name}, here is the state of your team.` : "Workspace overview"}
           </h1>
@@ -38,7 +36,7 @@ export function DashboardHeader({
             movement, and jump into workspace or project pages only when you need to act.
           </p>
           <div className="mt-6 grid gap-4 md:grid-cols-4">
-            <div className="rounded-[1.5rem] border border-slate-900/10 bg-white/82 p-4">
+            <div className="rounded-[1.5rem] border border-slate-200 bg-white p-4 shadow-sm">
               <p className="font-mono text-[11px] uppercase tracking-[0.24em] text-slate-500">
                 Active workspace
               </p>
@@ -49,7 +47,7 @@ export function DashboardHeader({
                 {formatRole(selectedWorkspaceRole)}
               </p>
             </div>
-            <div className="rounded-[1.5rem] border border-slate-900/10 bg-white/82 p-4">
+            <div className="rounded-[1.5rem] border border-slate-200 bg-white p-4 shadow-sm">
               <p className="font-mono text-[11px] uppercase tracking-[0.24em] text-slate-500">
                 Projects
               </p>
@@ -58,14 +56,14 @@ export function DashboardHeader({
                 Delivery lanes in the selected workspace
               </p>
             </div>
-            <div className="rounded-[1.5rem] border border-slate-900/10 bg-white/82 p-4">
+            <div className="rounded-[1.5rem] border border-slate-200 bg-white p-4 shadow-sm">
               <p className="font-mono text-[11px] uppercase tracking-[0.24em] text-slate-500">
                 Tasks
               </p>
               <p className="mt-3 text-3xl font-semibold text-slate-900">{taskCount}</p>
               <p className="mt-1 text-sm text-slate-600">{activeTaskCount} still in motion</p>
             </div>
-            <div className="rounded-[1.5rem] border border-slate-900/10 bg-white/82 p-4">
+            <div className="rounded-[1.5rem] border border-slate-200 bg-white p-4 shadow-sm">
               <p className="font-mono text-[11px] uppercase tracking-[0.24em] text-slate-500">
                 Team
               </p>
@@ -75,7 +73,7 @@ export function DashboardHeader({
           </div>
         </div>
 
-        <div className="rounded-[2rem] bg-slate-900 p-6 text-slate-50 shadow-[0_24px_80px_rgba(15,23,42,0.16)]">
+        <div className="tf-dark-panel rounded-[2rem] p-6 text-slate-50">
           <p className="font-mono text-xs uppercase tracking-[0.24em] text-slate-400">
             Control
           </p>
@@ -85,19 +83,19 @@ export function DashboardHeader({
           </p>
           <div className="mt-6 grid gap-3">
             <Link
-              className="inline-flex items-center justify-center rounded-full border border-white/10 bg-white/10 px-5 py-3 text-sm font-medium text-white transition hover:bg-white/15"
+              className="tf-btn-ghost"
               href="/"
             >
               Landing page
             </Link>
             <Link
-              className="inline-flex items-center justify-center rounded-full border border-white/10 bg-transparent px-5 py-3 text-sm font-medium text-white transition hover:bg-white/10"
+              className="tf-btn-ghost"
               href="/settings/billing"
             >
               Billing
             </Link>
             <button
-              className="inline-flex items-center justify-center rounded-full bg-white px-5 py-3 text-sm font-medium text-slate-900 transition hover:bg-slate-200"
+              className="tf-btn-secondary border-white/15 bg-white text-slate-900 hover:border-white/20"
               onClick={onLogout}
               type="button"
             >
