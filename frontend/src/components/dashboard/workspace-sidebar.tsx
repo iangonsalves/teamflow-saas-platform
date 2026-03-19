@@ -34,15 +34,15 @@ export function WorkspaceSidebar({
   }
 
   return (
-    <div className="space-y-6">
-      <section className="rounded-[2rem] border border-slate-900/10 bg-white/78 p-6 shadow-[0_24px_70px_rgba(15,23,42,0.08)] backdrop-blur">
+    <div className="space-y-6 xl:sticky xl:top-8">
+      <section className="rounded-[2rem] border border-slate-200 bg-white p-5 shadow-md">
         <div className="flex items-start justify-between gap-4">
           <div>
             <p className="font-mono text-xs uppercase tracking-[0.22em] text-slate-500">
               Workspaces
             </p>
             <p className="mt-2 text-sm leading-6 text-slate-600">
-              Choose the team context, then jump into a focused workspace page.
+              Switch the active team, then step into a dedicated workspace view when needed.
             </p>
           </div>
           {workspaceLoading ? (
@@ -83,10 +83,10 @@ export function WorkspaceSidebar({
 
                   <div className="mt-3 flex gap-2">
                     <Link
-                      className={`rounded-full px-3 py-2 text-xs font-medium no-underline transition ${
+                    className={`rounded-full px-3 py-2 text-xs font-medium no-underline transition-all duration-200 ${
                         isActive
                           ? "border border-white/15 bg-white/10 text-white hover:bg-white/15"
-                          : "border border-slate-900/10 bg-white text-slate-900 hover:bg-slate-50"
+                          : "border border-slate-200 bg-white text-slate-900 hover:bg-slate-50"
                       }`}
                       href={`/workspaces/${workspace.id}`}
                     >
@@ -114,12 +114,15 @@ export function WorkspaceSidebar({
             required
             value={workspaceName}
           />
-          <button
-            className="mt-3 w-full rounded-full bg-slate-900 px-5 py-3 text-sm font-medium text-white transition hover:bg-slate-700 disabled:cursor-not-allowed disabled:bg-slate-400"
-            disabled={workspaceLoading}
-            type="submit"
-          >
-            {workspaceLoading ? "Creating..." : "Create workspace"}
+          <button className="tf-btn-primary mt-3 w-full" disabled={workspaceLoading} type="submit">
+            {workspaceLoading ? (
+              <>
+                <span className="tf-spinner mr-2" />
+                Creating...
+              </>
+            ) : (
+              "Create workspace"
+            )}
           </button>
         </form>
       </section>
@@ -130,7 +133,7 @@ export function WorkspaceSidebar({
         </div>
       ) : null}
 
-      <section className="rounded-[2rem] border border-slate-900/10 bg-white/78 p-6 shadow-[0_24px_70px_rgba(15,23,42,0.08)] backdrop-blur">
+      <section className="rounded-[2rem] border border-slate-200 bg-slate-50 p-5 shadow-sm">
         <p className="font-mono text-xs uppercase tracking-[0.22em] text-slate-500">
           Current user
         </p>
@@ -140,7 +143,7 @@ export function WorkspaceSidebar({
         </div>
         <div className="mt-4 grid gap-3">
           <Link
-            className="rounded-full border border-slate-900/10 bg-white px-4 py-3 text-center text-sm font-medium text-slate-900 no-underline transition hover:bg-slate-50"
+            className="tf-btn-secondary w-full"
             href="/settings/billing"
           >
             Open billing

@@ -4,9 +4,11 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { apiRequestWithToken } from "@/lib/api";
-import { clearAuthSession, getAccessToken, type AuthUser } from "@/lib/auth-storage";
+import { clearAuthSession, getAccessToken } from "@/lib/auth-storage";
 import { PageBackLink } from "./page-back-link";
 import { TaskBoard } from "./dashboard/task-board";
+import { Skeleton } from "./ui/skeleton";
+import { useToast } from "./ui/toast-provider";
 import type {
   ProjectSummary,
   TaskPriority,
@@ -32,9 +34,9 @@ type ResolvedProjectContext = {
 
 export function ProjectDetailShell({ projectId }: ProjectDetailShellProps) {
   const router = useRouter();
+  const { showToast } = useToast();
   const searchParams = useSearchParams();
   const [token, setToken] = useState<string | null>(null);
-  const [user, setUser] = useState<AuthUser | null>(null);
   const [workspaces, setWorkspaces] = useState<WorkspaceSummary[]>([]);
   const [workspaceMembers, setWorkspaceMembers] = useState<WorkspaceMember[]>([]);
   const [projects, setProjects] = useState<ProjectSummary[]>([]);
@@ -66,6 +68,10 @@ export function ProjectDetailShell({ projectId }: ProjectDetailShellProps) {
     () => workspaces.find((workspace) => workspace.id === resolvedWorkspaceId) ?? null,
     [resolvedWorkspaceId, workspaces],
   );
+  const todoCount = tasks.filter((task) => task.status === "TODO").length;
+  const inProgressCount = tasks.filter((task) => task.status === "IN_PROGRESS").length;
+  const doneCount = tasks.filter((task) => task.status === "DONE").length;
+  const progressPercent = tasks.length ? Math.round((doneCount / tasks.length) * 100) : 0;
 
   useEffect(() => {
     const accessToken = getAccessToken();
@@ -125,19 +131,6 @@ export function ProjectDetailShell({ projectId }: ProjectDetailShellProps) {
 
     async function loadProjectPage() {
       try {
-        const me = await apiRequestWithToken<{ user: { sub: string; email: string; name: string } }>(
-          "/auth/me",
-          sessionToken,
-        );
-
-        if (!cancelled) {
-          setUser({
-            id: me.user.sub,
-            name: me.user.name,
-            email: me.user.email,
-          });
-        }
-
         const context = await resolveProjectContext();
 
         if (cancelled) {
@@ -193,6 +186,18 @@ export function ProjectDetailShell({ projectId }: ProjectDetailShellProps) {
       cancelled = true;
     };
   }, [projectId, router, workspaceHint]);
+
+  useEffect(() => {
+    if (taskActionMessage) {
+      showToast(taskActionMessage, "success");
+    }
+  }, [showToast, taskActionMessage]);
+
+  useEffect(() => {
+    if (errorMessage) {
+      showToast(errorMessage, "error");
+    }
+  }, [errorMessage, showToast]);
 
   async function reloadProjectState() {
     if (!token || !resolvedWorkspaceId) {
@@ -396,13 +401,24 @@ export function ProjectDetailShell({ projectId }: ProjectDetailShellProps) {
   if (loading) {
     return (
       <main className="min-h-screen bg-[radial-gradient(circle_at_top_left,_rgba(42,157,143,0.14),_transparent_24%),radial-gradient(circle_at_bottom_right,_rgba(244,162,97,0.14),_transparent_30%),linear-gradient(180deg,_#f8f3ea_0%,_#efe4d3_100%)] px-6 py-8 text-slate-900 sm:px-8">
-        <div className="mx-auto max-w-7xl">
-          <p className="font-mono text-xs uppercase tracking-[0.32em] text-slate-500">
-            Project
-          </p>
-          <h1 className="mt-3 text-4xl font-semibold tracking-tight">
-            Loading project board...
-          </h1>
+        <div className="mx-auto max-w-7xl space-y-6">
+          <div className="rounded-[2.25rem] border border-slate-200 bg-white p-6 shadow-md">
+            <Skeleton className="h-4 w-32 rounded-full" />
+            <Skeleton className="mt-5 h-12 w-[min(26rem,78%)] rounded-2xl" />
+            <div className="mt-6 grid gap-4 md:grid-cols-4">
+              {Array.from({ length: 4 }).map((_, index) => (
+                <div className="rounded-[1.5rem] border border-slate-200 bg-slate-50 p-4" key={index}>
+                  <Skeleton className="h-3 w-20 rounded-full" />
+                  <Skeleton className="mt-4 h-8 w-16 rounded-xl" />
+                  <Skeleton className="mt-3 h-3 w-28 rounded-full" />
+                </div>
+              ))}
+            </div>
+          </div>
+          <div className="grid gap-6 xl:grid-cols-[240px_minmax(0,1fr)]">
+            <Skeleton className="h-[24rem] rounded-[2rem]" />
+            <Skeleton className="h-[38rem] rounded-[2rem]" />
+          </div>
         </div>
       </main>
     );
@@ -418,68 +434,92 @@ export function ProjectDetailShell({ projectId }: ProjectDetailShellProps) {
           />
         </div>
 
-        <header className="rounded-[2rem] border border-slate-900/10 bg-white/78 p-6 shadow-[0_25px_80px_rgba(15,23,42,0.09)] backdrop-blur">
-          <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
-            <div className="max-w-3xl">
-              <p className="font-mono text-xs uppercase tracking-[0.32em] text-slate-500">
-                Project detail
-              </p>
+        <header className="rounded-[2.25rem] border border-slate-900/10 bg-white/82 p-6 shadow-[0_30px_90px_rgba(15,23,42,0.09)] backdrop-blur">
+          <div className="grid gap-6 xl:grid-cols-[minmax(0,1.1fr)_340px]">
+            <div className="tf-hero rounded-[2rem] p-6">
+              <p className="tf-brand-chip">Project detail</p>
               <h1 className="mt-3 text-4xl font-semibold tracking-tight">
                 {selectedProject?.name ?? "Project"}
               </h1>
               <p className="mt-3 text-base leading-7 text-slate-600">
-                The task board lives here now, with more space for status movement, editing, and assignment.
+                The task board is the main surface here now, with creation available on demand
+                and the surrounding chrome kept intentionally quieter.
               </p>
+              <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-5">
+                <div className="rounded-[1.5rem] border border-slate-200 bg-white p-4 shadow-sm">
+                  <p className="font-mono text-[11px] uppercase tracking-[0.24em] text-slate-500">
+                    Workspace
+                  </p>
+                  <p className="mt-3 text-lg font-semibold text-slate-900">
+                    {activeWorkspace?.name ?? "Unknown"}
+                  </p>
+                  <p className="mt-1 text-sm text-slate-600">Operational context</p>
+                </div>
+                <div className="rounded-[1.5rem] border border-slate-200 bg-white p-4 shadow-sm">
+                  <p className="font-mono text-[11px] uppercase tracking-[0.24em] text-slate-500">
+                    Todo
+                  </p>
+                  <p className="mt-3 text-3xl font-semibold text-slate-900">{todoCount}</p>
+                  <p className="mt-1 text-sm text-slate-600">Ready to be pulled</p>
+                </div>
+                <div className="rounded-[1.5rem] border border-slate-200 bg-white p-4 shadow-sm">
+                  <p className="font-mono text-[11px] uppercase tracking-[0.24em] text-slate-500">
+                    In progress
+                  </p>
+                  <p className="mt-3 text-3xl font-semibold text-slate-900">{inProgressCount}</p>
+                  <p className="mt-1 text-sm text-slate-600">Currently moving</p>
+                </div>
+                <div className="rounded-[1.5rem] border border-slate-200 bg-white p-4 shadow-sm">
+                  <p className="font-mono text-[11px] uppercase tracking-[0.24em] text-slate-500">
+                    Done
+                  </p>
+                  <p className="mt-3 text-3xl font-semibold text-slate-900">{doneCount}</p>
+                  <p className="mt-1 text-sm text-slate-600">Finished cards</p>
+                </div>
+                <div className="rounded-[1.5rem] border border-blue-200 bg-white p-4 shadow-sm">
+                  <p className="font-mono text-[11px] uppercase tracking-[0.24em] text-slate-500">
+                    Delivery progress
+                  </p>
+                  <p className="mt-3 text-3xl font-semibold text-slate-900">{progressPercent}%</p>
+                  <div className="mt-4 h-2.5 rounded-full bg-slate-100">
+                    <div className="h-2.5 rounded-full bg-blue-600 transition-all duration-300" style={{ width: `${progressPercent}%` }} />
+                  </div>
+                  <p className="mt-3 text-sm text-slate-600">{doneCount} of {tasks.length} cards complete.</p>
+                </div>
+              </div>
             </div>
-            <div className="flex flex-wrap gap-3">
-              <Link
-                className="inline-flex items-center justify-center rounded-full border border-slate-900/10 bg-white px-5 py-3 text-sm font-medium text-slate-900 no-underline transition hover:bg-slate-50"
-                href="/settings/billing"
-              >
-                Billing
-              </Link>
-              <button
-                className="inline-flex items-center justify-center rounded-full bg-slate-900 px-5 py-3 text-sm font-medium text-white transition hover:bg-slate-700"
-                onClick={handleLogout}
-                type="button"
-              >
-                Log out
-              </button>
-            </div>
-          </div>
 
-          <div className="mt-6 grid gap-4 md:grid-cols-4">
-            <div className="rounded-[1.5rem] border border-slate-900/10 bg-[#f8f2e6] p-4">
-              <p className="font-mono text-[11px] uppercase tracking-[0.24em] text-slate-500">
-                Workspace
+            <div className="tf-dark-panel rounded-[2rem] p-6 text-slate-50">
+              <p className="font-mono text-xs uppercase tracking-[0.24em] text-slate-400">
+                Control
               </p>
-              <p className="mt-3 text-lg font-semibold text-slate-900">
-                {activeWorkspace?.name ?? "Unknown"}
+              <p className="mt-4 text-2xl font-semibold">Keep the board moving.</p>
+              <p className="mt-3 text-sm leading-7 text-slate-300">
+                Team size: {workspaceMembers.length}. Your role: {selectedWorkspaceRole ?? "MEMBER"}.
               </p>
-              <p className="mt-1 text-sm text-slate-600">Operational context</p>
-            </div>
-            <div className="rounded-[1.5rem] border border-slate-900/10 bg-white p-4">
-              <p className="font-mono text-[11px] uppercase tracking-[0.24em] text-slate-500">
-                Tasks
-              </p>
-              <p className="mt-3 text-3xl font-semibold text-slate-900">{tasks.length}</p>
-              <p className="mt-1 text-sm text-slate-600">Cards on this board</p>
-            </div>
-            <div className="rounded-[1.5rem] border border-slate-900/10 bg-white p-4">
-              <p className="font-mono text-[11px] uppercase tracking-[0.24em] text-slate-500">
-                Team
-              </p>
-              <p className="mt-3 text-3xl font-semibold text-slate-900">{workspaceMembers.length}</p>
-              <p className="mt-1 text-sm text-slate-600">Members available to assign</p>
-            </div>
-            <div className="rounded-[1.5rem] border border-slate-900/10 bg-slate-900 p-4 text-slate-50">
-              <p className="font-mono text-[11px] uppercase tracking-[0.24em] text-slate-400">
-                Your role
-              </p>
-              <p className="mt-3 text-lg font-semibold">
-                {selectedWorkspaceRole ?? "MEMBER"}
-              </p>
-              <p className="mt-1 text-sm text-slate-300">{user?.email ?? "Signed in"}</p>
+              <div className="mt-6 grid gap-3">
+                <Link
+                  className="tf-btn-ghost"
+                  href="/settings/billing"
+                >
+                  Billing
+                </Link>
+                {resolvedWorkspaceId ? (
+                  <Link
+                    className="tf-btn-ghost"
+                    href={`/workspaces/${resolvedWorkspaceId}`}
+                  >
+                    Workspace page
+                  </Link>
+                ) : null}
+                <button
+                  className="tf-btn-secondary border-white/15 bg-white text-slate-900 hover:border-white/20"
+                  onClick={handleLogout}
+                  type="button"
+                >
+                  Log out
+                </button>
+              </div>
             </div>
           </div>
         </header>
@@ -490,21 +530,21 @@ export function ProjectDetailShell({ projectId }: ProjectDetailShellProps) {
           </div>
         ) : null}
 
-        <section className="mt-6 grid gap-6 xl:grid-cols-[280px_minmax(0,1fr)]">
-          <aside className="space-y-6">
-            <section className="rounded-[2rem] border border-slate-900/10 bg-white/78 p-6 shadow-[0_24px_70px_rgba(15,23,42,0.08)] backdrop-blur">
+        <section className="mt-6 grid gap-6 xl:grid-cols-[240px_minmax(0,1fr)]">
+          <aside className="space-y-6 xl:sticky xl:top-8 xl:self-start">
+            <section className="rounded-[2rem] border border-slate-900/10 bg-white/78 p-5 shadow-[0_24px_70px_rgba(15,23,42,0.08)] backdrop-blur">
               <p className="font-mono text-xs uppercase tracking-[0.22em] text-slate-500">
-                Workspace projects
+                Project rail
               </p>
               <p className="mt-2 text-sm leading-6 text-slate-600">
-                Jump between projects without returning to the crowded dashboard.
+                Jump between projects without pulling focus away from the board.
               </p>
               <div className="mt-4 grid gap-3">
                 {projects.map((project) => (
                   <Link
                     className={`rounded-[1.25rem] border px-4 py-4 text-sm no-underline transition ${
                       project.id === projectId
-                        ? "border-slate-900 bg-slate-900 text-white"
+                        ? "border-slate-900 bg-slate-900 text-white shadow-[0_14px_34px_rgba(15,23,42,0.18)]"
                         : "border-slate-900/10 bg-[#fffdfa] text-slate-900 hover:border-slate-900/25"
                     }`}
                     href={`/projects/${project.id}?workspaceId=${resolvedWorkspaceId}`}
@@ -521,6 +561,18 @@ export function ProjectDetailShell({ projectId }: ProjectDetailShellProps) {
                   </Link>
                 ))}
               </div>
+            </section>
+
+            <section className="rounded-[2rem] border border-slate-900/10 bg-[linear-gradient(180deg,_#e7f3f0_0%,_#f4fbf9_100%)] p-5 shadow-[0_18px_50px_rgba(42,157,143,0.10)]">
+              <p className="font-mono text-xs uppercase tracking-[0.22em] text-slate-500">
+                Team context
+              </p>
+              <p className="mt-3 text-lg font-semibold text-slate-900">
+                {workspaceMembers.length} assignable members
+              </p>
+              <p className="mt-2 text-sm leading-6 text-slate-600">
+                Assignee controls stay on each card, so the left rail can stay lightweight.
+              </p>
             </section>
           </aside>
 

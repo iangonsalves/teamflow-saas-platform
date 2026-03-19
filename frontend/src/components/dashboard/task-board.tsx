@@ -1,3 +1,6 @@
+"use client";
+
+import { useState } from "react";
 import type { TaskPriority, TaskStatus, TaskSummary, WorkspaceMember } from "./types";
 import {
   formatPriority,
@@ -75,144 +78,159 @@ export function TaskBoard({
   onCancelEditingTask,
   onSaveTaskEdit,
 }: TaskBoardProps) {
+  const [composerOpen, setComposerOpen] = useState(false);
+
+  const canCreateTask =
+    canManageWorkspace && Boolean(selectedWorkspaceId) && Boolean(selectedProjectId);
+
   return (
-    <section className="rounded-[2rem] border border-slate-900/10 bg-white/72 p-6 backdrop-blur">
+    <section className="rounded-[2.25rem] border border-slate-900/10 bg-white/84 p-6 shadow-[0_28px_80px_rgba(15,23,42,0.08)] backdrop-blur">
       <div className="flex flex-col gap-5 xl:flex-row xl:items-start xl:justify-between">
-        <div>
-          <p className="font-mono text-xs uppercase tracking-[0.22em] text-slate-500">
+        <div className="max-w-3xl">
+          <p className="font-mono text-xs uppercase tracking-[0.24em] text-slate-500">
             Task board
           </p>
-          <h2 className="mt-3 text-2xl font-semibold text-slate-900">
-            {selectedProjectName ?? "Select a project"}
-          </h2>
-          <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600">
-            Move work across the board and keep assignments visible. Members can
-            update their own tasks; owners and admins can drive the whole lane.
+          <div className="mt-3 flex flex-wrap items-center gap-3">
+            <h2 className="text-3xl font-semibold tracking-tight text-slate-900">
+              {selectedProjectName ?? "Select a project"}
+            </h2>
+            <span className="rounded-full border border-slate-900/10 bg-[#fff7ec] px-3 py-1 text-xs font-medium uppercase tracking-[0.18em] text-[#8d5b28]">
+              {tasks.length} cards
+            </span>
+          </div>
+          <p className="mt-3 max-w-2xl text-sm leading-7 text-slate-600">
+            This board is the primary workspace for the project. Creation is available on demand,
+            while movement and assignment stay visible directly inside each lane.
           </p>
         </div>
 
-        <form
-          className="w-full max-w-md rounded-[1.5rem] border border-slate-900/10 bg-[#f8f2e6] p-5"
-          onSubmit={onCreateTask}
-        >
-          <p className="font-mono text-xs uppercase tracking-[0.22em] text-slate-500">
-            Quick task
-          </p>
-          <input
-            className="mt-4 w-full rounded-2xl border border-slate-900/10 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-slate-900/30"
-            disabled={
-              !canManageWorkspace ||
-              !selectedWorkspaceId ||
-              !selectedProjectId ||
-              submittingTask
-            }
-            onChange={(event) => onTaskTitleChange(event.target.value)}
-            placeholder="Prepare onboarding checklist"
-            required
-            value={taskTitle}
-          />
-          <textarea
-            className="mt-3 min-h-24 w-full rounded-2xl border border-slate-900/10 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-slate-900/30"
-            disabled={
-              !canManageWorkspace ||
-              !selectedWorkspaceId ||
-              !selectedProjectId ||
-              submittingTask
-            }
-            onChange={(event) => onTaskDescriptionChange(event.target.value)}
-            placeholder="Context, requirements, or next actions"
-            value={taskDescription}
-          />
-          <div className="mt-3 grid gap-3 sm:grid-cols-2">
-            <select
-              className="rounded-2xl border border-slate-900/10 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-slate-900/30"
-              disabled={
-                !canManageWorkspace ||
-                !selectedWorkspaceId ||
-                !selectedProjectId ||
-                submittingTask
-              }
-              onChange={(event) => onTaskPriorityChange(event.target.value as TaskPriority)}
-              value={taskPriority}
+        <div className="flex flex-wrap items-center gap-3">
+          {projectLoading ? (
+            <span className="rounded-full border border-slate-900/10 bg-white px-4 py-2 text-xs text-slate-500">
+              Syncing board
+            </span>
+          ) : null}
+          {canCreateTask ? (
+            <button
+              className="tf-btn-primary"
+              onClick={() => setComposerOpen((current) => !current)}
+              type="button"
             >
-              {taskPriorities.map((priority) => (
-                <option key={priority} value={priority}>
-                  {formatPriority(priority)}
-                </option>
-              ))}
-            </select>
-            <select
-              className="rounded-2xl border border-slate-900/10 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-slate-900/30"
-              disabled={
-                !canManageWorkspace ||
-                !selectedWorkspaceId ||
-                !selectedProjectId ||
-                submittingTask
-              }
-              onChange={(event) => onTaskAssigneeChange(event.target.value)}
-              value={taskAssignee}
-            >
-              <option value="">Unassigned</option>
-              {workspaceMembers.map((member) => (
-                <option key={member.user.id} value={member.user.id}>
-                  {member.user.name}
-                </option>
-              ))}
-            </select>
-          </div>
-          <button
-            className="mt-4 w-full rounded-full bg-slate-900 px-5 py-3 text-sm font-medium text-white transition hover:bg-slate-700 disabled:cursor-not-allowed disabled:bg-slate-400"
-            disabled={
-              !canManageWorkspace ||
-              !selectedWorkspaceId ||
-              !selectedProjectId ||
-              submittingTask
-            }
-            type="submit"
-          >
-            {submittingTask ? "Adding task..." : "Create task"}
-          </button>
-        </form>
+              {composerOpen ? "Close composer" : "New task"}
+            </button>
+          ) : null}
+        </div>
       </div>
 
       {taskActionMessage ? (
-        <div className="mt-4 rounded-2xl border border-[#2a9d8f]/25 bg-[#edf8f5] px-4 py-3 text-sm text-[#1f6c63]">
+        <div className="mt-5 rounded-2xl border border-[#2a9d8f]/25 bg-[#edf8f5] px-4 py-3 text-sm text-[#1f6c63]">
           {taskActionMessage}
         </div>
       ) : null}
 
-      <div className="mt-6 grid gap-4 xl:grid-cols-3">
+      {composerOpen ? (
+        <form
+          className="mt-6 rounded-[2rem] border border-[#c5b8a1] bg-[#f6efe1] p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.45)]"
+          onSubmit={onCreateTask}
+        >
+          <div className="flex flex-col gap-2 lg:flex-row lg:items-end lg:justify-between">
+            <div>
+              <p className="font-mono text-xs uppercase tracking-[0.22em] text-slate-500">
+                Task composer
+              </p>
+              <p className="mt-2 text-sm leading-6 text-slate-600">
+                Add a new card without losing sight of the board.
+              </p>
+            </div>
+          </div>
+
+          <div className="mt-4 grid gap-4 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)]">
+            <div className="grid gap-3">
+              <input
+                className="w-full rounded-2xl border border-slate-900/10 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-slate-900/30"
+                disabled={!canCreateTask || submittingTask}
+                onChange={(event) => onTaskTitleChange(event.target.value)}
+                placeholder="Prepare onboarding checklist"
+                required
+                value={taskTitle}
+              />
+              <textarea
+                className="min-h-28 w-full rounded-2xl border border-slate-900/10 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-slate-900/30"
+                disabled={!canCreateTask || submittingTask}
+                onChange={(event) => onTaskDescriptionChange(event.target.value)}
+                placeholder="Context, requirements, or next actions"
+                value={taskDescription}
+              />
+            </div>
+
+            <div className="grid gap-3">
+              <select
+                className="rounded-2xl border border-slate-900/10 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-slate-900/30"
+                disabled={!canCreateTask || submittingTask}
+                onChange={(event) => onTaskPriorityChange(event.target.value as TaskPriority)}
+                value={taskPriority}
+              >
+                {taskPriorities.map((priority) => (
+                  <option key={priority} value={priority}>
+                    {formatPriority(priority)}
+                  </option>
+                ))}
+              </select>
+              <select
+                className="rounded-2xl border border-slate-900/10 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-slate-900/30"
+                disabled={!canCreateTask || submittingTask}
+                onChange={(event) => onTaskAssigneeChange(event.target.value)}
+                value={taskAssignee}
+              >
+                <option value="">Unassigned</option>
+                {workspaceMembers.map((member) => (
+                  <option key={member.user.id} value={member.user.id}>
+                    {member.user.name}
+                  </option>
+                ))}
+              </select>
+              <button className="tf-btn-primary" disabled={!canCreateTask || submittingTask} type="submit">
+                {submittingTask ? (
+                  <>
+                    <span className="tf-spinner mr-2" />
+                    Adding task...
+                  </>
+                ) : (
+                  "Create task"
+                )}
+              </button>
+            </div>
+          </div>
+        </form>
+      ) : null}
+
+      <div className="mt-6 grid gap-4 2xl:grid-cols-3">
         {taskStatuses.map((status) => {
           const tasksForStatus = tasks.filter((task) => task.status === status);
 
           return (
             <section
-              className={`rounded-[1.75rem] border border-slate-900/10 p-4 ${getStatusCardClasses(status)}`}
+              className={`rounded-[2rem] border border-slate-900/10 p-4 ${getStatusCardClasses(status)}`}
               key={status}
             >
-              <div className="flex items-center justify-between gap-4">
+              <div className="flex items-center justify-between gap-4 rounded-[1.5rem] bg-white/72 px-4 py-3">
                 <div>
                   <p className="font-mono text-xs uppercase tracking-[0.22em] text-slate-500">
                     {formatStatus(status)}
                   </p>
-                  <p className="mt-2 text-2xl font-semibold text-slate-900">
+                  <p className="mt-2 text-3xl font-semibold text-slate-900">
                     {tasksForStatus.length}
                   </p>
                 </div>
-                {projectLoading ? (
-                  <span className="rounded-full bg-white px-3 py-1 text-xs text-slate-500">
-                    Syncing
-                  </span>
-                ) : null}
+                <span className="rounded-full bg-slate-900 px-3 py-1 text-[11px] uppercase tracking-[0.18em] text-white">
+                  Lane
+                </span>
               </div>
 
               <div className="mt-4 grid gap-3">
                 {tasksForStatus.length > 0 ? (
                   tasksForStatus.map((task) => (
-                    <div
-                      className="rounded-[1.5rem] border border-slate-900/10 bg-white p-4 shadow-[0_10px_24px_rgba(15,23,42,0.06)]"
-                      key={task.id}
-                    >
+                    <div className="rounded-[1.6rem] border border-slate-200 bg-white p-4 shadow-md transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg" key={task.id}>
                       {editingTaskId === task.id ? (
                         <div className="space-y-4">
                           <input
@@ -255,18 +273,10 @@ export function TaskBoard({
                             </select>
                           </div>
                           <div className="flex gap-3">
-                            <button
-                              className="rounded-full bg-slate-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-slate-700"
-                              onClick={() => onSaveTaskEdit(task.id)}
-                              type="button"
-                            >
+                            <button className="tf-btn-primary px-4 py-2 text-sm" onClick={() => onSaveTaskEdit(task.id)} type="button">
                               Save
                             </button>
-                            <button
-                              className="rounded-full border border-slate-900/10 bg-white px-4 py-2 text-sm font-medium text-slate-900 transition hover:bg-slate-50"
-                              onClick={onCancelEditingTask}
-                              type="button"
-                            >
+                            <button className="tf-btn-secondary px-4 py-2 text-sm" onClick={onCancelEditingTask} type="button">
                               Cancel
                             </button>
                           </div>
@@ -274,11 +284,11 @@ export function TaskBoard({
                       ) : (
                         <>
                           <div className="flex items-start justify-between gap-3">
-                            <div>
+                            <div className="space-y-2">
                               <p className="text-base font-semibold text-slate-900">
                                 {task.title}
                               </p>
-                              <p className="mt-2 text-sm leading-6 text-slate-600">
+                              <p className="text-sm leading-6 text-slate-600">
                                 {task.description || "No description yet."}
                               </p>
                             </div>
@@ -289,14 +299,14 @@ export function TaskBoard({
                             </span>
                           </div>
 
-                          <div className="mt-4 flex items-center justify-between gap-4">
+                          <div className="mt-4 grid gap-3 rounded-[1.25rem] bg-[#f8f6f1] p-3 sm:grid-cols-2">
                             <div>
-                              <p className="text-xs uppercase tracking-[0.18em] text-slate-500">
+                              <p className="text-[11px] uppercase tracking-[0.18em] text-slate-500">
                                 Assignee
                               </p>
                               {canManageWorkspace ? (
                                 <select
-                                  className="mt-1 rounded-full border border-slate-900/10 bg-white px-3 py-2 text-xs font-medium text-slate-900 outline-none transition focus:border-slate-900/30"
+                                  className="mt-1 w-full rounded-full border border-slate-900/10 bg-white px-3 py-2 text-xs font-medium text-slate-900 outline-none transition focus:border-slate-900/30"
                                   disabled={updatingTaskId === task.id}
                                   onChange={(event) =>
                                     onTaskAssigneeUpdate(task.id, event.target.value)
@@ -316,12 +326,12 @@ export function TaskBoard({
                                 </p>
                               )}
                             </div>
-                            <div className="text-right">
-                              <p className="text-xs uppercase tracking-[0.18em] text-slate-500">
+                            <div>
+                              <p className="text-[11px] uppercase tracking-[0.18em] text-slate-500">
                                 Move task
                               </p>
                               <select
-                                className="mt-1 rounded-full border border-slate-900/10 bg-white px-3 py-2 text-xs font-medium text-slate-900 outline-none transition focus:border-slate-900/30"
+                                className="mt-1 w-full rounded-full border border-slate-900/10 bg-white px-3 py-2 text-xs font-medium text-slate-900 outline-none transition focus:border-slate-900/30"
                                 disabled={updatingTaskId === task.id}
                                 onChange={(event) =>
                                   onTaskStatusChange(task.id, event.target.value as TaskStatus)
@@ -336,10 +346,11 @@ export function TaskBoard({
                               </select>
                             </div>
                           </div>
+
                           {canManageWorkspace ? (
                             <div className="mt-4 flex justify-end">
                               <button
-                                className="rounded-full border border-slate-900/10 bg-white px-4 py-2 text-sm font-medium text-slate-900 transition hover:bg-slate-50"
+                                className="tf-btn-secondary px-4 py-2 text-sm"
                                 onClick={() => onStartEditingTask(task)}
                                 type="button"
                               >
@@ -352,8 +363,13 @@ export function TaskBoard({
                     </div>
                   ))
                 ) : (
-                  <div className="rounded-[1.5rem] border border-dashed border-slate-900/15 bg-white/70 px-4 py-6 text-sm text-slate-600">
-                    No tasks in {formatStatus(status).toLowerCase()}.
+                  <div className="tf-empty-state rounded-[1.5rem] px-4 py-8 text-center text-sm text-slate-600">
+                    <p className="text-base font-semibold text-slate-900">No tasks in {formatStatus(status).toLowerCase()}</p>
+                    <p className="mt-2">
+                      {status === "TODO"
+                        ? "Create a task to seed this lane and start the board."
+                        : `Move work into ${formatStatus(status).toLowerCase()} when progress changes.`}
+                    </p>
                   </div>
                 )}
               </div>

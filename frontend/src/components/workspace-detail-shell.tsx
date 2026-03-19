@@ -23,6 +23,8 @@ import type {
 import { formatRole } from "./dashboard/utils";
 import { WorkspaceMembersPanel } from "./workspace-members-panel";
 import { WorkspaceProjectsPanel } from "./workspace-projects-panel";
+import { Skeleton } from "./ui/skeleton";
+import { useToast } from "./ui/toast-provider";
 
 type WorkspaceDetailShellProps = {
   workspaceId: string;
@@ -32,6 +34,7 @@ export function WorkspaceDetailShell({
   workspaceId,
 }: WorkspaceDetailShellProps) {
   const router = useRouter();
+  const { showToast } = useToast();
   const [token, setToken] = useState<string | null>(null);
   const [user, setUser] = useState<AuthUser | null>(null);
   const [workspaces, setWorkspaces] = useState<WorkspaceSummary[]>([]);
@@ -53,6 +56,10 @@ export function WorkspaceDetailShell({
 
   const canManageWorkspace =
     selectedWorkspaceRole === "OWNER" || selectedWorkspaceRole === "ADMIN";
+  const ownerCount = workspaceMembers.filter((member) => member.role === "OWNER").length;
+  const adminCount = workspaceMembers.filter((member) => member.role === "ADMIN").length;
+  const completionPercent =
+    projects.length > 0 ? Math.min(100, Math.round((projects.length / Math.max(workspaceMembers.length, 1)) * 25)) : 0;
 
   useEffect(() => {
     const accessToken = getAccessToken();
@@ -127,6 +134,24 @@ export function WorkspaceDetailShell({
       cancelled = true;
     };
   }, [router, workspaceId]);
+
+  useEffect(() => {
+    if (workspaceActionMessage) {
+      showToast(workspaceActionMessage, "success");
+    }
+  }, [showToast, workspaceActionMessage]);
+
+  useEffect(() => {
+    if (projectActionMessage) {
+      showToast(projectActionMessage, "success");
+    }
+  }, [projectActionMessage, showToast]);
+
+  useEffect(() => {
+    if (errorMessage) {
+      showToast(errorMessage, "error");
+    }
+  }, [errorMessage, showToast]);
 
   async function reloadWorkspaceState() {
     if (!token) {
@@ -326,13 +351,30 @@ export function WorkspaceDetailShell({
   if (workspaceLoading && !workspace) {
     return (
       <main className="min-h-screen bg-[radial-gradient(circle_at_top_left,_rgba(33,158,188,0.14),_transparent_28%),radial-gradient(circle_at_bottom_right,_rgba(244,162,97,0.18),_transparent_30%),linear-gradient(180deg,_#f8f3ea_0%,_#efe4d3_100%)] px-6 py-8 text-slate-900 sm:px-8">
-        <div className="mx-auto max-w-7xl">
-          <p className="font-mono text-xs uppercase tracking-[0.32em] text-slate-500">
-            Workspace
-          </p>
-          <h1 className="mt-3 text-4xl font-semibold tracking-tight">
-            Loading workspace surface...
-          </h1>
+        <div className="mx-auto max-w-7xl space-y-6">
+          <div className="rounded-[2.25rem] border border-slate-200 bg-white p-6 shadow-md">
+            <Skeleton className="h-4 w-36 rounded-full" />
+            <Skeleton className="mt-5 h-12 w-[min(28rem,80%)] rounded-2xl" />
+            <div className="mt-6 grid gap-4 md:grid-cols-4">
+              {Array.from({ length: 4 }).map((_, index) => (
+                <div className="rounded-[1.5rem] border border-slate-200 bg-slate-50 p-4" key={index}>
+                  <Skeleton className="h-3 w-20 rounded-full" />
+                  <Skeleton className="mt-4 h-8 w-16 rounded-xl" />
+                  <Skeleton className="mt-3 h-3 w-28 rounded-full" />
+                </div>
+              ))}
+            </div>
+          </div>
+          <div className="grid gap-6 xl:grid-cols-[240px_minmax(0,1fr)]">
+            <Skeleton className="h-[28rem] rounded-[2rem]" />
+            <div className="space-y-6">
+              <Skeleton className="h-72 rounded-[2rem]" />
+              <div className="grid gap-6 xl:grid-cols-2">
+                <Skeleton className="h-[22rem] rounded-[2rem]" />
+                <Skeleton className="h-[22rem] rounded-[2rem]" />
+              </div>
+            </div>
+          </div>
         </div>
       </main>
     );
@@ -345,67 +387,92 @@ export function WorkspaceDetailShell({
           <PageBackLink href="/dashboard" label="Back to overview" />
         </div>
 
-        <header className="rounded-[2rem] border border-slate-900/10 bg-white/78 p-6 shadow-[0_25px_80px_rgba(15,23,42,0.09)] backdrop-blur">
-          <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
-            <div className="max-w-3xl">
-              <p className="font-mono text-xs uppercase tracking-[0.32em] text-slate-500">
-                Workspace detail
-              </p>
+        <header className="rounded-[2.25rem] border border-slate-900/10 bg-white/82 p-6 shadow-[0_30px_90px_rgba(15,23,42,0.09)] backdrop-blur">
+          <div className="grid gap-6 xl:grid-cols-[minmax(0,1.1fr)_340px]">
+            <div className="tf-hero rounded-[2rem] p-6">
+              <p className="tf-brand-chip">Workspace detail</p>
               <h1 className="mt-3 text-4xl font-semibold tracking-tight">
                 {workspace?.name ?? "Workspace"}
               </h1>
               <p className="mt-3 text-base leading-7 text-slate-600">
-                Members, invitations, and project planning now live on their own page so the
-                overview can stay readable.
+                This page is now the team operating surface: members, invitations, and project
+                planning in one place, with a clearer hierarchy than the old dashboard.
               </p>
+              <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-5">
+                <div className="rounded-[1.5rem] border border-slate-200 bg-white p-4 shadow-sm">
+                  <p className="font-mono text-[11px] uppercase tracking-[0.24em] text-slate-500">
+                    Role
+                  </p>
+                  <p className="mt-3 text-lg font-semibold text-slate-900">
+                    {formatRole(selectedWorkspaceRole)}
+                  </p>
+                  <p className="mt-1 text-sm text-slate-600">Your access level here</p>
+                </div>
+                <div className="rounded-[1.5rem] border border-slate-200 bg-white p-4 shadow-sm">
+                  <p className="font-mono text-[11px] uppercase tracking-[0.24em] text-slate-500">
+                    Members
+                  </p>
+                  <p className="mt-3 text-3xl font-semibold text-slate-900">{workspaceMembers.length}</p>
+                  <p className="mt-1 text-sm text-slate-600">People in this team</p>
+                </div>
+                <div className="rounded-[1.5rem] border border-slate-200 bg-white p-4 shadow-sm">
+                  <p className="font-mono text-[11px] uppercase tracking-[0.24em] text-slate-500">
+                    Admins
+                  </p>
+                  <p className="mt-3 text-3xl font-semibold text-slate-900">{adminCount}</p>
+                  <p className="mt-1 text-sm text-slate-600">Operational leads</p>
+                </div>
+                <div className="rounded-[1.5rem] border border-slate-200 bg-white p-4 shadow-sm">
+                  <p className="font-mono text-[11px] uppercase tracking-[0.24em] text-slate-500">
+                    Projects
+                  </p>
+                  <p className="mt-3 text-3xl font-semibold text-slate-900">{projects.length}</p>
+                  <p className="mt-1 text-sm text-slate-600">Delivery lanes in motion</p>
+                </div>
+                <div className="rounded-[1.5rem] border border-blue-200 bg-white p-4 shadow-sm">
+                  <p className="font-mono text-[11px] uppercase tracking-[0.24em] text-slate-500">
+                    Workspace health
+                  </p>
+                  <p className="mt-3 text-3xl font-semibold text-slate-900">{completionPercent}%</p>
+                  <div className="mt-4 h-2.5 rounded-full bg-slate-100">
+                    <div className="h-2.5 rounded-full bg-blue-600 transition-all duration-300" style={{ width: `${completionPercent}%` }} />
+                  </div>
+                  <p className="mt-3 text-sm text-slate-600">Planning signal based on active projects and team size.</p>
+                </div>
+              </div>
             </div>
-            <div className="flex flex-wrap gap-3">
-              <Link
-                className="inline-flex items-center justify-center rounded-full border border-slate-900/10 bg-white px-5 py-3 text-sm font-medium text-slate-900 no-underline transition hover:bg-slate-50"
-                href="/settings/billing"
-              >
-                Billing
-              </Link>
-              <button
-                className="inline-flex items-center justify-center rounded-full bg-slate-900 px-5 py-3 text-sm font-medium text-white transition hover:bg-slate-700"
-                onClick={handleLogout}
-                type="button"
-              >
-                Log out
-              </button>
-            </div>
-          </div>
 
-          <div className="mt-6 grid gap-4 md:grid-cols-4">
-            <div className="rounded-[1.5rem] border border-slate-900/10 bg-[#f8f2e6] p-4">
-              <p className="font-mono text-[11px] uppercase tracking-[0.24em] text-slate-500">
-                Role
+            <div className="tf-dark-panel rounded-[2rem] p-6 text-slate-50">
+              <p className="font-mono text-xs uppercase tracking-[0.24em] text-slate-400">
+                Control
               </p>
-              <p className="mt-3 text-lg font-semibold text-slate-900">
-                {formatRole(selectedWorkspaceRole)}
+              <p className="mt-4 text-2xl font-semibold">Steer the team surface.</p>
+              <p className="mt-3 text-sm leading-7 text-slate-300">
+                Owner: {workspace?.owner.name ?? "Unknown"} · {ownerCount} owner slot · {projects.length} active lanes.
               </p>
-              <p className="mt-1 text-sm text-slate-600">Your access level here</p>
-            </div>
-            <div className="rounded-[1.5rem] border border-slate-900/10 bg-white p-4">
-              <p className="font-mono text-[11px] uppercase tracking-[0.24em] text-slate-500">
-                Members
-              </p>
-              <p className="mt-3 text-3xl font-semibold text-slate-900">{workspaceMembers.length}</p>
-              <p className="mt-1 text-sm text-slate-600">People in this team</p>
-            </div>
-            <div className="rounded-[1.5rem] border border-slate-900/10 bg-white p-4">
-              <p className="font-mono text-[11px] uppercase tracking-[0.24em] text-slate-500">
-                Projects
-              </p>
-              <p className="mt-3 text-3xl font-semibold text-slate-900">{projects.length}</p>
-              <p className="mt-1 text-sm text-slate-600">Delivery lanes in motion</p>
-            </div>
-            <div className="rounded-[1.5rem] border border-slate-900/10 bg-slate-900 p-4 text-slate-50">
-              <p className="font-mono text-[11px] uppercase tracking-[0.24em] text-slate-400">
-                Owner
-              </p>
-              <p className="mt-3 text-lg font-semibold">{workspace?.owner.name ?? "Unknown"}</p>
-              <p className="mt-1 text-sm text-slate-300">{workspace?.owner.email ?? user?.email}</p>
+              <div className="mt-6 grid gap-3">
+                <Link
+                  className="tf-btn-ghost"
+                  href="/settings/billing"
+                >
+                  Billing
+                </Link>
+                {projects[0] ? (
+                  <Link
+                    className="tf-btn-ghost"
+                    href={`/projects/${projects[0].id}?workspaceId=${workspaceId}`}
+                  >
+                    Open latest project
+                  </Link>
+                ) : null}
+                <button
+                  className="tf-btn-secondary border-white/15 bg-white text-slate-900 hover:border-white/20"
+                  onClick={handleLogout}
+                  type="button"
+                >
+                  Log out
+                </button>
+              </div>
             </div>
           </div>
         </header>
@@ -416,7 +483,7 @@ export function WorkspaceDetailShell({
           </div>
         ) : null}
 
-        <section className="mt-6 grid gap-6 xl:grid-cols-[300px_minmax(0,1fr)]">
+        <section className="mt-6 grid gap-6 xl:grid-cols-[240px_minmax(0,1fr)]">
           <WorkspaceSidebar
             onCreateWorkspace={(name) => {
               void handleCreateWorkspace(name);
@@ -446,7 +513,7 @@ export function WorkspaceDetailShell({
               workspaceName={workspace?.name ?? null}
             />
 
-            <div className="grid gap-6 2xl:grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)]">
+            <div className="grid gap-6 xl:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)]">
               <WorkspaceMembersPanel
                 actionMessage={workspaceActionMessage}
                 canManageWorkspace={canManageWorkspace}

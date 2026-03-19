@@ -23,6 +23,8 @@ import type {
   WorkspaceSummary,
 } from "./dashboard/types";
 import { formatAuditAction, formatStatus } from "./dashboard/utils";
+import { Skeleton } from "./ui/skeleton";
+import { useToast } from "./ui/toast-provider";
 
 type RecentTaskItem = TaskSummary & {
   projectId: string;
@@ -32,6 +34,7 @@ type RecentTaskItem = TaskSummary & {
 
 export function DashboardShell() {
   const router = useRouter();
+  const { showToast } = useToast();
   const [token, setToken] = useState<string | null>(null);
   const [user, setUser] = useState<AuthUser | null>(null);
   const [workspaces, setWorkspaces] = useState<WorkspaceSummary[]>([]);
@@ -54,6 +57,13 @@ export function DashboardShell() {
     workspaces.find((workspace) => workspace.id === selectedWorkspaceId) ?? null;
 
   const spotlightProject = useMemo(() => projects[0] ?? null, [projects]);
+  const completedTaskCount = useMemo(
+    () => Math.max(workspaceTaskCount - workspaceActiveTaskCount, 0),
+    [workspaceActiveTaskCount, workspaceTaskCount],
+  );
+  const progressPercent = workspaceTaskCount
+    ? Math.round((completedTaskCount / workspaceTaskCount) * 100)
+    : 0;
 
   useEffect(() => {
     const accessToken = getAccessToken();
@@ -230,6 +240,18 @@ export function DashboardShell() {
     };
   }, [selectedWorkspaceId, token, workspaces]);
 
+  useEffect(() => {
+    if (workspaceActionMessage) {
+      showToast(workspaceActionMessage, "success");
+    }
+  }, [showToast, workspaceActionMessage]);
+
+  useEffect(() => {
+    if (errorMessage) {
+      showToast(errorMessage, "error");
+    }
+  }, [errorMessage, showToast]);
+
   async function reloadWorkspaceList() {
     if (!token) {
       return [];
@@ -287,13 +309,37 @@ export function DashboardShell() {
   if (loading) {
     return (
       <main className="min-h-screen bg-[radial-gradient(circle_at_top_left,_rgba(42,157,143,0.14),_transparent_24%),radial-gradient(circle_at_bottom_right,_rgba(244,162,97,0.14),_transparent_30%),linear-gradient(180deg,_#f8f3ea_0%,_#efe4d3_100%)] px-6 py-10 text-slate-900">
-        <div className="mx-auto max-w-6xl">
-          <p className="font-mono text-xs uppercase tracking-[0.32em] text-slate-500">
-            Dashboard
-          </p>
-          <h1 className="mt-3 text-4xl font-semibold tracking-tight">
-            Loading the operating overview...
-          </h1>
+        <div className="mx-auto max-w-7xl space-y-6">
+          <div className="rounded-[2.25rem] border border-slate-200 bg-white p-6 shadow-md">
+            <Skeleton className="h-4 w-40 rounded-full" />
+            <Skeleton className="mt-5 h-12 w-[min(30rem,85%)] rounded-2xl" />
+            <div className="mt-6 grid gap-4 md:grid-cols-4">
+              {Array.from({ length: 4 }).map((_, index) => (
+                <div className="rounded-[1.5rem] border border-slate-200 bg-slate-50 p-4" key={index}>
+                  <Skeleton className="h-3 w-20 rounded-full" />
+                  <Skeleton className="mt-4 h-8 w-16 rounded-xl" />
+                  <Skeleton className="mt-3 h-3 w-28 rounded-full" />
+                </div>
+              ))}
+            </div>
+          </div>
+          <div className="grid gap-6 xl:grid-cols-[240px_minmax(0,1fr)]">
+            <div className="rounded-[2rem] border border-slate-200 bg-white p-5 shadow-md">
+              <Skeleton className="h-4 w-24 rounded-full" />
+              <div className="mt-4 space-y-3">
+                {Array.from({ length: 3 }).map((_, index) => (
+                  <Skeleton className="h-20 rounded-[1.5rem]" key={index} />
+                ))}
+              </div>
+            </div>
+            <div className="grid gap-6">
+              <Skeleton className="h-72 rounded-[2rem]" />
+              <div className="grid gap-6 xl:grid-cols-2">
+                <Skeleton className="h-72 rounded-[2rem]" />
+                <Skeleton className="h-72 rounded-[2rem]" />
+              </div>
+            </div>
+          </div>
         </div>
       </main>
     );
@@ -319,7 +365,7 @@ export function DashboardShell() {
           </div>
         ) : null}
 
-        <section className="mt-6 grid gap-6 xl:grid-cols-[300px_minmax(0,1fr)]">
+        <section className="mt-6 grid gap-6 xl:grid-cols-[240px_minmax(0,1fr)]">
           <WorkspaceSidebar
             onCreateWorkspace={(name) => {
               void handleCreateWorkspace(name);
@@ -333,7 +379,7 @@ export function DashboardShell() {
           />
 
           <div className="space-y-6">
-            <section className="rounded-[2rem] border border-slate-900/10 bg-white/80 p-6 shadow-[0_24px_70px_rgba(15,23,42,0.08)] backdrop-blur">
+            <section className="rounded-[2.2rem] border border-slate-900/10 bg-white/82 p-6 shadow-[0_28px_80px_rgba(15,23,42,0.08)] backdrop-blur">
               <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
                 <div className="max-w-3xl">
                   <p className="font-mono text-xs uppercase tracking-[0.22em] text-slate-500">
@@ -345,8 +391,8 @@ export function DashboardShell() {
                       : "Start with a workspace"}
                   </h2>
                   <p className="mt-3 text-sm leading-7 text-slate-600">
-                    The overview is now meant for orientation only: current workspace status,
-                    project entry points, recent task movement, and activity history.
+                    This page is for orientation only: current workspace state, project entry
+                    points, recent movement, and a short audit trail.
                   </p>
                 </div>
                 <div className="flex flex-wrap gap-3">
@@ -366,11 +412,16 @@ export function DashboardShell() {
                       Open active project
                     </Link>
                   ) : null}
+                  {!selectedWorkspace ? (
+                    <span className="rounded-full border border-slate-900/10 bg-white px-4 py-2 text-sm text-slate-600">
+                      Create a workspace from the rail to unlock the rest of the app.
+                    </span>
+                  ) : null}
                 </div>
               </div>
 
-              <div className="mt-6 grid gap-4 md:grid-cols-3">
-                <div className="rounded-[1.5rem] border border-slate-900/10 bg-[#fff7ec] p-5">
+              <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+                <div className="rounded-[1.6rem] border border-slate-900/10 bg-[#fff7ec] p-5">
                   <p className="font-mono text-[11px] uppercase tracking-[0.24em] text-slate-500">
                     Workspace lane
                   </p>
@@ -381,7 +432,7 @@ export function DashboardShell() {
                     Members, invites, and project planning now live on the workspace page.
                   </p>
                 </div>
-                <div className="rounded-[1.5rem] border border-slate-900/10 bg-white p-5">
+                <div className="rounded-[1.6rem] border border-slate-900/10 bg-white p-5">
                   <p className="font-mono text-[11px] uppercase tracking-[0.24em] text-slate-500">
                     Active projects
                   </p>
@@ -392,7 +443,7 @@ export function DashboardShell() {
                     Focused delivery lanes with separate task-board pages.
                   </p>
                 </div>
-                <div className="rounded-[1.5rem] border border-slate-900/10 bg-slate-900 p-5 text-slate-50">
+                <div className="rounded-[1.6rem] border border-slate-900/10 bg-slate-900 p-5 text-slate-50">
                   <p className="font-mono text-[11px] uppercase tracking-[0.24em] text-slate-400">
                     Recent movement
                   </p>
@@ -401,11 +452,26 @@ export function DashboardShell() {
                     Recent tasks surfaced from the selected workspace.
                   </p>
                 </div>
+                <div className="rounded-[1.6rem] border border-blue-200 bg-white p-5 shadow-sm">
+                  <p className="font-mono text-[11px] uppercase tracking-[0.24em] text-slate-500">
+                    Delivery progress
+                  </p>
+                  <p className="mt-3 text-3xl font-semibold text-slate-900">{progressPercent}%</p>
+                  <div className="mt-4 h-2.5 rounded-full bg-slate-100">
+                    <div
+                      className="h-2.5 rounded-full bg-blue-600 transition-all duration-300"
+                      style={{ width: `${progressPercent}%` }}
+                    />
+                  </div>
+                  <p className="mt-3 text-sm text-slate-600">
+                    {completedTaskCount} of {workspaceTaskCount} workspace tasks completed.
+                  </p>
+                </div>
               </div>
             </section>
 
             <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
-              <section className="rounded-[2rem] border border-slate-900/10 bg-white/80 p-6 shadow-[0_24px_70px_rgba(15,23,42,0.08)] backdrop-blur">
+              <section className="rounded-[2.1rem] border border-slate-900/10 bg-white/82 p-6 shadow-[0_24px_70px_rgba(15,23,42,0.08)] backdrop-blur">
                 <div className="flex items-end justify-between gap-4">
                   <div>
                     <p className="font-mono text-xs uppercase tracking-[0.22em] text-slate-500">
@@ -449,14 +515,22 @@ export function DashboardShell() {
                       </Link>
                     ))
                   ) : (
-                    <div className="rounded-[1.5rem] border border-dashed border-slate-900/15 bg-[#fffdfa] px-5 py-8 text-sm text-slate-600">
-                      No projects yet. Create one from the workspace page instead of the overview.
+                    <div className="tf-empty-state rounded-[1.5rem] px-5 py-8 text-center text-sm text-slate-600">
+                      <p className="text-lg font-semibold text-slate-900">No projects yet</p>
+                      <p className="mt-2">
+                        Open the workspace page to create the first delivery lane for this team.
+                      </p>
+                      {selectedWorkspace ? (
+                        <Link className="tf-btn-primary mt-4" href={`/workspaces/${selectedWorkspace.id}`}>
+                          Create project
+                        </Link>
+                      ) : null}
                     </div>
                   )}
                 </div>
               </section>
 
-              <section className="rounded-[2rem] border border-slate-900/10 bg-white/80 p-6 shadow-[0_24px_70px_rgba(15,23,42,0.08)] backdrop-blur">
+              <section className="rounded-[2.1rem] border border-slate-900/10 bg-white/82 p-6 shadow-[0_24px_70px_rgba(15,23,42,0.08)] backdrop-blur">
                 <div className="flex items-end justify-between gap-4">
                   <div>
                     <p className="font-mono text-xs uppercase tracking-[0.22em] text-slate-500">
@@ -495,15 +569,18 @@ export function DashboardShell() {
                       </Link>
                     ))
                   ) : (
-                    <div className="rounded-[1.5rem] border border-dashed border-slate-900/15 bg-[#fffdfa] px-5 py-8 text-sm text-slate-600">
-                      Recent tasks will appear here once projects start moving.
+                    <div className="tf-empty-state rounded-[1.5rem] px-5 py-8 text-center text-sm text-slate-600">
+                      <p className="text-lg font-semibold text-slate-900">No recent movement</p>
+                      <p className="mt-2">
+                        Once tasks start moving across project boards, this feed will surface the latest work.
+                      </p>
                     </div>
                   )}
                 </div>
               </section>
             </div>
 
-            <section className="rounded-[2rem] border border-slate-900/10 bg-white/80 p-6 shadow-[0_24px_70px_rgba(15,23,42,0.08)] backdrop-blur">
+            <section className="rounded-[2.1rem] border border-slate-900/10 bg-white/82 p-6 shadow-[0_24px_70px_rgba(15,23,42,0.08)] backdrop-blur">
               <div className="flex items-end justify-between gap-4">
                 <div>
                   <p className="font-mono text-xs uppercase tracking-[0.22em] text-slate-500">
@@ -544,7 +621,7 @@ export function DashboardShell() {
                   ))
                 ) : (
                   <div className="rounded-[1.5rem] border border-dashed border-slate-900/15 bg-[#fffdfa] px-5 py-8 text-sm text-slate-600">
-                    Activity history will appear here as the team uses the workspace.
+                    Activity history will appear here once the workspace starts seeing member, project, or task changes.
                   </div>
                 )}
               </div>

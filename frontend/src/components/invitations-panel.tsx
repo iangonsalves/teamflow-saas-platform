@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { apiRequestWithToken } from "@/lib/api";
+import { useToast } from "./ui/toast-provider";
 
 type Invitation = {
   id: string;
@@ -23,6 +24,7 @@ export function InvitationsPanel({
   token,
   canManage,
 }: InvitationsPanelProps) {
+  const { showToast } = useToast();
   const [email, setEmail] = useState("");
   const [role, setRole] = useState("MEMBER");
   const [invitations, setInvitations] = useState<Invitation[]>([]);
@@ -49,6 +51,18 @@ export function InvitationsPanel({
     );
     setInvitations(items);
   }
+
+  useEffect(() => {
+    if (errorMessage) {
+      showToast(errorMessage, "error");
+    }
+  }, [errorMessage, showToast]);
+
+  useEffect(() => {
+    if (successMessage) {
+      showToast("Invitation created.", "success");
+    }
+  }, [showToast, successMessage]);
 
   async function handleCreateInvitation(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -125,18 +139,21 @@ export function InvitationsPanel({
   }, [canManage, token, workspaceId]);
 
   return (
-    <section className="rounded-[2rem] border border-slate-900/10 bg-white/72 p-6 backdrop-blur">
-      <div className="flex items-center justify-between gap-4">
+    <section className="rounded-[2.15rem] border border-slate-200 bg-white p-6 shadow-md">
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         <div>
           <p className="font-mono text-xs uppercase tracking-[0.22em] text-slate-500">
             Invitations
           </p>
+          <h3 className="mt-3 text-2xl font-semibold text-slate-900">
+            Invite new teammates
+          </h3>
           <p className="mt-2 text-sm leading-6 text-slate-600">
             Create a token-based workspace invitation and share the generated link.
           </p>
         </div>
         <button
-          className="rounded-full border border-slate-900/10 bg-white px-4 py-2 text-sm font-medium text-slate-900 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+          className="tf-btn-secondary px-4 py-2 disabled:opacity-50"
           disabled={!workspaceId || !token || !canManage}
           onClick={() => void loadInvitations()}
           type="button"
@@ -146,30 +163,42 @@ export function InvitationsPanel({
       </div>
 
       {canManage ? (
-        <form className="mt-5 grid gap-3 sm:grid-cols-[1fr_180px_auto]" onSubmit={handleCreateInvitation}>
-          <input
-            className="rounded-2xl border border-slate-900/10 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-slate-900/30"
-            onChange={(event) => setEmail(event.target.value)}
-            placeholder="invitee@example.com"
-            required
-            type="email"
-            value={email}
-          />
-          <select
-            className="rounded-2xl border border-slate-900/10 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-slate-900/30"
-            onChange={(event) => setRole(event.target.value)}
-            value={role}
-          >
-            <option value="MEMBER">Member</option>
-            <option value="ADMIN">Admin</option>
-          </select>
-          <button
-            className="rounded-full bg-slate-900 px-5 py-3 text-sm font-medium text-white transition hover:bg-slate-700 disabled:cursor-not-allowed disabled:bg-slate-400"
-            disabled={isLoading}
-            type="submit"
-          >
-            {isLoading ? "Creating..." : "Create invite"}
-          </button>
+        <form
+          className="mt-5 rounded-[1.8rem] border border-slate-200 bg-slate-50 p-4 shadow-sm"
+          onSubmit={handleCreateInvitation}
+        >
+          <div className="grid gap-3 sm:grid-cols-[1fr_180px_auto]">
+            <input
+              className="rounded-2xl border border-slate-900/10 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-slate-900/30"
+              onChange={(event) => setEmail(event.target.value)}
+              placeholder="invitee@example.com"
+              required
+              type="email"
+              value={email}
+            />
+            <select
+              className="rounded-2xl border border-slate-900/10 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-slate-900/30"
+              onChange={(event) => setRole(event.target.value)}
+              value={role}
+            >
+              <option value="MEMBER">Member</option>
+              <option value="ADMIN">Admin</option>
+            </select>
+            <button
+              className="tf-btn-primary"
+              disabled={isLoading}
+              type="submit"
+            >
+              {isLoading ? (
+                <>
+                  <span className="tf-spinner mr-2" />
+                  Creating...
+                </>
+              ) : (
+                "Create invite"
+              )}
+            </button>
+          </div>
         </form>
       ) : (
         <p className="mt-5 text-sm text-slate-600">
@@ -192,10 +221,7 @@ export function InvitationsPanel({
       <div className="mt-5 grid gap-3">
         {invitations.length > 0 ? (
           invitations.map((invitation) => (
-            <div
-              className="rounded-2xl border border-slate-900/10 bg-[#f7efe2] p-4"
-              key={invitation.id}
-            >
+            <div className="rounded-[1.5rem] border border-slate-200 bg-slate-50 p-4 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg" key={invitation.id}>
               <div className="flex items-center justify-between gap-4">
                 <div>
                   <p className="text-sm font-semibold text-slate-900">
@@ -212,9 +238,12 @@ export function InvitationsPanel({
             </div>
           ))
         ) : (
-          <p className="text-sm text-slate-600">
-            No invitations loaded yet. Create one or refresh to view the current list.
-          </p>
+          <div className="tf-empty-state rounded-[1.5rem] px-5 py-8 text-center text-sm text-slate-600">
+            <p className="text-lg font-semibold text-slate-900">No invitations yet</p>
+            <p className="mt-2">
+              Create the first invite to onboard a teammate into this workspace.
+            </p>
+          </div>
         )}
       </div>
     </section>

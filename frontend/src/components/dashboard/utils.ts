@@ -37,14 +37,14 @@ export function getPriorityClasses(priority: TaskPriority) {
 
 export function getStatusCardClasses(status: TaskStatus) {
   if (status === "DONE") {
-    return "bg-[#edf8f5]";
+    return "bg-[linear-gradient(180deg,_#e8f6f1_0%,_#f5fbf8_100%)]";
   }
 
   if (status === "IN_PROGRESS") {
-    return "bg-[#fff4ea]";
+    return "bg-[linear-gradient(180deg,_#fff1e5_0%,_#fff8f1_100%)]";
   }
 
-  return "bg-white";
+  return "bg-[linear-gradient(180deg,_#f7f5f0_0%,_#fffdf8_100%)]";
 }
 
 export function formatAuditAction(action: string) {

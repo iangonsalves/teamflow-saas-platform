@@ -24,77 +24,84 @@ export function DashboardHeader({
   onLogout,
 }: DashboardHeaderProps) {
   return (
-    <header className="rounded-[2rem] border border-slate-900/10 bg-white/72 p-6 shadow-[0_25px_80px_rgba(15,23,42,0.09)] backdrop-blur">
-      <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
-        <div className="max-w-3xl">
-          <p className="font-mono text-xs uppercase tracking-[0.32em] text-slate-500">
-            TeamFlow Operations
-          </p>
+    <header className="rounded-[2.25rem] border border-slate-900/10 bg-white/82 p-6 shadow-[0_30px_90px_rgba(15,23,42,0.09)] backdrop-blur">
+      <div className="grid gap-6 xl:grid-cols-[minmax(0,1.1fr)_340px]">
+        <div className="tf-hero rounded-[2rem] p-6">
+          <p className="tf-brand-chip">TeamFlow Operations</p>
           <h1 className="mt-3 text-4xl font-semibold tracking-tight">
             {user ? `${user.name}, here is the state of your team.` : "Workspace overview"}
           </h1>
           <p className="mt-3 text-base leading-7 text-slate-600">
-            Manage one workspace at a time, move projects forward, and keep tasks
-            flowing without jumping between backend tools.
+            The overview is now a true command surface: pick the right workspace, scan current
+            movement, and jump into workspace or project pages only when you need to act.
           </p>
+          <div className="mt-6 grid gap-4 md:grid-cols-4">
+            <div className="rounded-[1.5rem] border border-slate-200 bg-white p-4 shadow-sm">
+              <p className="font-mono text-[11px] uppercase tracking-[0.24em] text-slate-500">
+                Active workspace
+              </p>
+              <p className="mt-3 text-lg font-semibold text-slate-900">
+                {activeWorkspaceName ?? "None yet"}
+              </p>
+              <p className="mt-1 text-sm text-slate-600">
+                {formatRole(selectedWorkspaceRole)}
+              </p>
+            </div>
+            <div className="rounded-[1.5rem] border border-slate-200 bg-white p-4 shadow-sm">
+              <p className="font-mono text-[11px] uppercase tracking-[0.24em] text-slate-500">
+                Projects
+              </p>
+              <p className="mt-3 text-3xl font-semibold text-slate-900">{projectCount}</p>
+              <p className="mt-1 text-sm text-slate-600">
+                Delivery lanes in the selected workspace
+              </p>
+            </div>
+            <div className="rounded-[1.5rem] border border-slate-200 bg-white p-4 shadow-sm">
+              <p className="font-mono text-[11px] uppercase tracking-[0.24em] text-slate-500">
+                Tasks
+              </p>
+              <p className="mt-3 text-3xl font-semibold text-slate-900">{taskCount}</p>
+              <p className="mt-1 text-sm text-slate-600">{activeTaskCount} still in motion</p>
+            </div>
+            <div className="rounded-[1.5rem] border border-slate-200 bg-white p-4 shadow-sm">
+              <p className="font-mono text-[11px] uppercase tracking-[0.24em] text-slate-500">
+                Team
+              </p>
+              <p className="mt-3 text-3xl font-semibold text-slate-900">{memberCount}</p>
+              <p className="mt-1 text-sm text-slate-600">{user?.email ?? "Signed-in user"}</p>
+            </div>
+          </div>
         </div>
-        <div className="flex flex-wrap gap-3">
-          <Link
-            className="inline-flex items-center justify-center rounded-full border border-slate-900/10 bg-white px-5 py-3 text-sm font-medium text-slate-900 transition hover:bg-slate-50"
-            href="/"
-          >
-            Landing page
-          </Link>
-          <Link
-            className="inline-flex items-center justify-center rounded-full border border-slate-900/10 bg-[#e7f3f0] px-5 py-3 text-sm font-medium text-slate-900 transition hover:bg-[#d9ece7]"
-            href="/settings/billing"
-          >
-            Billing
-          </Link>
-          <button
-            className="inline-flex items-center justify-center rounded-full bg-slate-900 px-5 py-3 text-sm font-medium text-white transition hover:bg-slate-700"
-            onClick={onLogout}
-            type="button"
-          >
-            Log out
-          </button>
-        </div>
-      </div>
 
-      <div className="mt-6 grid gap-4 md:grid-cols-4">
-        <div className="rounded-[1.5rem] border border-slate-900/10 bg-[#f8f2e6] p-4">
-          <p className="font-mono text-[11px] uppercase tracking-[0.24em] text-slate-500">
-            Active workspace
+        <div className="tf-dark-panel rounded-[2rem] p-6 text-slate-50">
+          <p className="font-mono text-xs uppercase tracking-[0.24em] text-slate-400">
+            Control
           </p>
-          <p className="mt-3 text-lg font-semibold text-slate-900">
-            {activeWorkspaceName ?? "None yet"}
+          <p className="mt-4 text-2xl font-semibold">Choose where to focus.</p>
+          <p className="mt-3 text-sm leading-7 text-slate-300">
+            Use the overview for orientation, then open a workspace or project when it’s time to act.
           </p>
-          <p className="mt-1 text-sm text-slate-600">
-            {formatRole(selectedWorkspaceRole)}
-          </p>
-        </div>
-        <div className="rounded-[1.5rem] border border-slate-900/10 bg-white p-4">
-          <p className="font-mono text-[11px] uppercase tracking-[0.24em] text-slate-500">
-            Projects
-          </p>
-          <p className="mt-3 text-3xl font-semibold text-slate-900">{projectCount}</p>
-          <p className="mt-1 text-sm text-slate-600">
-            Delivery lanes in the selected workspace
-          </p>
-        </div>
-        <div className="rounded-[1.5rem] border border-slate-900/10 bg-white p-4">
-          <p className="font-mono text-[11px] uppercase tracking-[0.24em] text-slate-500">
-            Tasks
-          </p>
-          <p className="mt-3 text-3xl font-semibold text-slate-900">{taskCount}</p>
-          <p className="mt-1 text-sm text-slate-600">{activeTaskCount} still in motion</p>
-        </div>
-        <div className="rounded-[1.5rem] border border-slate-900/10 bg-slate-900 p-4 text-slate-50">
-          <p className="font-mono text-[11px] uppercase tracking-[0.24em] text-slate-400">
-            Team
-          </p>
-          <p className="mt-3 text-3xl font-semibold">{memberCount}</p>
-          <p className="mt-1 text-sm text-slate-300">{user?.email ?? "Signed-in user"}</p>
+          <div className="mt-6 grid gap-3">
+            <Link
+              className="tf-btn-ghost"
+              href="/"
+            >
+              Landing page
+            </Link>
+            <Link
+              className="tf-btn-ghost"
+              href="/settings/billing"
+            >
+              Billing
+            </Link>
+            <button
+              className="tf-btn-secondary border-white/15 bg-white text-slate-900 hover:border-white/20"
+              onClick={onLogout}
+              type="button"
+            >
+              Log out
+            </button>
+          </div>
         </div>
       </div>
     </header>
