@@ -73,7 +73,7 @@ export function WorkspaceMembersPanel({
           members.map((member) => (
             <div className="rounded-[1.6rem] border border-slate-200 bg-slate-50 p-4 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg" key={member.id}>
               <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-                <div>
+                <div className="min-w-0">
                   <div className="flex flex-wrap items-center gap-2">
                     <p className="text-base font-semibold text-slate-900">
                       {member.user.name}
@@ -85,9 +85,9 @@ export function WorkspaceMembersPanel({
                   <p className="mt-1 text-sm text-slate-600">{member.user.email}</p>
                 </div>
                 {canManageWorkspace ? (
-                  <div className="flex flex-wrap items-center gap-2">
+                  <div className="grid w-full gap-2 sm:w-auto sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
                     <select
-                      className="rounded-full border border-slate-900/10 bg-white px-3 py-2 text-[11px] font-medium uppercase tracking-[0.18em] text-slate-700 outline-none transition focus:border-slate-900/30"
+                      className="min-w-0 rounded-full border border-slate-900/10 bg-white px-3 py-2 text-[11px] font-medium uppercase tracking-[0.18em] text-slate-700 outline-none transition focus:border-slate-900/30"
                       onChange={(event) =>
                         onUpdateWorkspaceMemberRole(
                           member.user.id,
@@ -111,7 +111,7 @@ export function WorkspaceMembersPanel({
                       Remove
                     </button>
                   </div>
-                  ) : null}
+                ) : null}
               </div>
             </div>
           ))
@@ -146,38 +146,42 @@ export function WorkspaceMembersPanel({
               </p>
             </div>
           </div>
-          <div className="mt-4 grid gap-3 lg:grid-cols-[minmax(0,1fr)_180px_auto]">
-            <input
-              className="rounded-2xl border border-slate-900/10 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-slate-900/30"
-              onChange={(event) => setMemberEmail(event.target.value)}
-              placeholder="teammate@example.com"
-              required
-              type="email"
-              value={memberEmail}
-            />
-            <select
-              className="rounded-2xl border border-slate-900/10 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-slate-900/30"
-              onChange={(event) => setMemberRole(event.target.value as WorkspaceRole)}
-              value={memberRole}
-            >
-              <option value="MEMBER">Member</option>
-              <option value="ADMIN">Admin</option>
-              <option value="OWNER">Owner</option>
-            </select>
-            <button
-              className="tf-btn-primary"
-              disabled={isLoading}
-              type="submit"
-            >
-              {isLoading ? (
-                <>
-                  <span className="tf-spinner mr-2" />
-                  Saving...
-                </>
-              ) : (
-                "Add member"
-              )}
-            </button>
+          <div className="mt-4 grid gap-3">
+            <div className="grid gap-3 md:grid-cols-[minmax(0,1fr)_180px]">
+              <input
+                className="min-w-0 rounded-2xl border border-slate-900/10 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-slate-900/30"
+                onChange={(event) => setMemberEmail(event.target.value)}
+                placeholder="teammate@example.com"
+                required
+                type="email"
+                value={memberEmail}
+              />
+              <select
+                className="min-w-0 rounded-2xl border border-slate-900/10 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-slate-900/30"
+                onChange={(event) => setMemberRole(event.target.value as WorkspaceRole)}
+                value={memberRole}
+              >
+                <option value="MEMBER">Member</option>
+                <option value="ADMIN">Admin</option>
+                <option value="OWNER">Owner</option>
+              </select>
+            </div>
+            <div className="flex justify-start md:justify-end">
+              <button
+                className="tf-btn-primary w-full md:w-auto"
+                disabled={isLoading}
+                type="submit"
+              >
+                {isLoading ? (
+                  <>
+                    <span className="tf-spinner mr-2" />
+                    Saving...
+                  </>
+                ) : (
+                  "Add member"
+                )}
+              </button>
+            </div>
           </div>
         </form>
       ) : null}

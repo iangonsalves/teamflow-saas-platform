@@ -5,8 +5,9 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { apiRequestWithToken } from "@/lib/api";
 import { clearAuthSession, getAccessToken } from "@/lib/auth-storage";
-import { PageBackLink } from "./page-back-link";
 import { TaskBoard } from "./dashboard/task-board";
+import { AppPageShell } from "./shell/app-page-shell";
+import { ShellHeroHeader } from "./shell/shell-hero-header";
 import { Skeleton } from "./ui/skeleton";
 import { useToast } from "./ui/toast-provider";
 import type {
@@ -425,27 +426,47 @@ export function ProjectDetailShell({ projectId }: ProjectDetailShellProps) {
   }
 
   return (
-    <main className="min-h-screen bg-[radial-gradient(circle_at_top_left,_rgba(42,157,143,0.14),_transparent_24%),radial-gradient(circle_at_bottom_right,_rgba(244,162,97,0.14),_transparent_30%),linear-gradient(180deg,_#f8f3ea_0%,_#efe4d3_100%)] px-6 py-8 text-slate-900 sm:px-8">
-      <section className="mx-auto max-w-7xl">
-        <div className="mb-6">
-          <PageBackLink
-            href={resolvedWorkspaceId ? `/workspaces/${resolvedWorkspaceId}` : "/dashboard"}
-            label={resolvedWorkspaceId ? "Back to workspace" : "Back to overview"}
-          />
-        </div>
-
-        <header className="rounded-[2.25rem] border border-slate-900/10 bg-white/82 p-6 shadow-[0_30px_90px_rgba(15,23,42,0.09)] backdrop-blur">
-          <div className="grid gap-6 xl:grid-cols-[minmax(0,1.1fr)_340px]">
-            <div className="tf-hero rounded-[2rem] p-6">
-              <p className="tf-brand-chip">Project detail</p>
-              <h1 className="mt-3 text-4xl font-semibold tracking-tight">
-                {selectedProject?.name ?? "Project"}
-              </h1>
-              <p className="mt-3 text-base leading-7 text-slate-600">
-                The task board is the main surface here now, with creation available on demand
-                and the surrounding chrome kept intentionally quieter.
+    <AppPageShell
+      backHref={resolvedWorkspaceId ? `/workspaces/${resolvedWorkspaceId}` : "/dashboard"}
+      backLabel={resolvedWorkspaceId ? "Back to workspace" : "Back to overview"}
+      maxWidth="7xl"
+    >
+        <ShellHeroHeader
+          controls={
+            <>
+              <p className="font-mono text-xs uppercase tracking-[0.24em] text-slate-400">
+                Control
               </p>
-              <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-5">
+              <p className="mt-4 text-2xl font-semibold">Keep the board moving.</p>
+              <p className="mt-3 text-sm leading-7 text-slate-300">
+                Team size: {workspaceMembers.length}. Your role: {selectedWorkspaceRole ?? "MEMBER"}.
+              </p>
+              <div className="mt-6 grid gap-3">
+                <Link className="tf-btn-ghost" href="/settings/billing">
+                  Billing
+                </Link>
+                {resolvedWorkspaceId ? (
+                  <Link
+                    className="tf-btn-ghost"
+                    href={`/workspaces/${resolvedWorkspaceId}`}
+                  >
+                    Workspace page
+                  </Link>
+                ) : null}
+                <button
+                  className="tf-btn-secondary border-white/15 bg-white text-slate-900 hover:border-white/20"
+                  onClick={handleLogout}
+                  type="button"
+                >
+                  Log out
+                </button>
+              </div>
+            </>
+          }
+          description="The task board is the main surface here now, with creation available on demand and the surrounding chrome kept intentionally quieter."
+          eyebrow="Project detail"
+          metrics={
+            <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
                 <div className="rounded-[1.5rem] border border-slate-200 bg-white p-4 shadow-sm">
                   <p className="font-mono text-[11px] uppercase tracking-[0.24em] text-slate-500">
                     Workspace
@@ -486,43 +507,10 @@ export function ProjectDetailShell({ projectId }: ProjectDetailShellProps) {
                   </div>
                   <p className="mt-3 text-sm text-slate-600">{doneCount} of {tasks.length} cards complete.</p>
                 </div>
-              </div>
             </div>
-
-            <div className="tf-dark-panel rounded-[2rem] p-6 text-slate-50">
-              <p className="font-mono text-xs uppercase tracking-[0.24em] text-slate-400">
-                Control
-              </p>
-              <p className="mt-4 text-2xl font-semibold">Keep the board moving.</p>
-              <p className="mt-3 text-sm leading-7 text-slate-300">
-                Team size: {workspaceMembers.length}. Your role: {selectedWorkspaceRole ?? "MEMBER"}.
-              </p>
-              <div className="mt-6 grid gap-3">
-                <Link
-                  className="tf-btn-ghost"
-                  href="/settings/billing"
-                >
-                  Billing
-                </Link>
-                {resolvedWorkspaceId ? (
-                  <Link
-                    className="tf-btn-ghost"
-                    href={`/workspaces/${resolvedWorkspaceId}`}
-                  >
-                    Workspace page
-                  </Link>
-                ) : null}
-                <button
-                  className="tf-btn-secondary border-white/15 bg-white text-slate-900 hover:border-white/20"
-                  onClick={handleLogout}
-                  type="button"
-                >
-                  Log out
-                </button>
-              </div>
-            </div>
-          </div>
-        </header>
+          }
+          title={selectedProject?.name ?? "Project"}
+        />
 
         {errorMessage ? (
           <div className="mt-6 rounded-2xl border border-[#e76f51]/25 bg-[#fff0eb] px-5 py-4 text-sm text-[#a13f24]">
@@ -616,7 +604,6 @@ export function ProjectDetailShell({ projectId }: ProjectDetailShellProps) {
             workspaceMembers={workspaceMembers}
           />
         </section>
-      </section>
-    </main>
+    </AppPageShell>
   );
 }
