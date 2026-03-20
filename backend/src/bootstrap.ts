@@ -28,6 +28,7 @@ export function configureApp(
   const expressApp = app.getHttpAdapter().getInstance?.();
   if (typeof expressApp?.disable === 'function') {
     expressApp.disable('x-powered-by');
+    // Local avatar uploads are served directly by the API during development.
     const uploadsPath = join(process.cwd(), 'uploads');
     const avatarUploadsPath = join(uploadsPath, 'avatars');
     mkdirSync(uploadsPath, { recursive: true });

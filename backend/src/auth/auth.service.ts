@@ -119,6 +119,7 @@ export class AuthService {
       existingUser.avatarUrl !== updatedUser.avatarUrl &&
       existingUser.avatarUrl.includes('/uploads/avatars/')
     ) {
+      // Replace/remove the previous locally stored avatar file when the profile changes.
       const filename = existingUser.avatarUrl.split('/uploads/avatars/')[1];
 
       if (filename) {
