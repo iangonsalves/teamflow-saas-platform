@@ -4,7 +4,8 @@ import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { apiRequestWithToken } from "@/lib/api";
 import { getAccessToken } from "@/lib/auth-storage";
-import { PageBackLink } from "./page-back-link";
+import { AppPageShell } from "./shell/app-page-shell";
+import { ShellHeroHeader } from "./shell/shell-hero-header";
 import { Skeleton } from "./ui/skeleton";
 import { useToast } from "./ui/toast-provider";
 
@@ -225,8 +226,8 @@ export function BillingShell() {
 
   if (!workspace && !errorMessage) {
     return (
-      <main className="min-h-screen bg-[radial-gradient(circle_at_top_left,_rgba(42,157,143,0.16),_transparent_24%),radial-gradient(circle_at_bottom_right,_rgba(231,111,81,0.14),_transparent_30%),linear-gradient(180deg,_#f8f3ea_0%,_#efe4d3_100%)] px-6 py-8 text-slate-900 sm:px-8">
-        <section className="mx-auto max-w-5xl space-y-6">
+      <AppPageShell maxWidth="5xl">
+        <div className="space-y-6">
           <div className="rounded-[2.25rem] border border-slate-200 bg-white p-6 shadow-md">
             <Skeleton className="h-4 w-40 rounded-full" />
             <Skeleton className="mt-5 h-12 w-[min(24rem,72%)] rounded-2xl" />
@@ -244,30 +245,63 @@ export function BillingShell() {
             <Skeleton className="h-72 rounded-[2rem]" />
             <Skeleton className="h-72 rounded-[2rem]" />
           </div>
-        </section>
-      </main>
+        </div>
+      </AppPageShell>
     );
   }
 
   return (
-    <main className="min-h-screen bg-[radial-gradient(circle_at_top_left,_rgba(42,157,143,0.16),_transparent_24%),radial-gradient(circle_at_bottom_right,_rgba(231,111,81,0.14),_transparent_30%),linear-gradient(180deg,_#f8f3ea_0%,_#efe4d3_100%)] px-6 py-8 text-slate-900 sm:px-8">
-      <section className="mx-auto max-w-5xl">
-        <div className="mb-6">
-          <PageBackLink href="/dashboard" label="Back to dashboard" />
-        </div>
-        <header className="rounded-[2.25rem] border border-slate-900/10 bg-white/82 p-6 shadow-[0_30px_90px_rgba(15,23,42,0.09)] backdrop-blur">
-          <div className="grid gap-6 xl:grid-cols-[minmax(0,1.1fr)_340px]">
-            <div className="tf-hero rounded-[2rem] p-6">
-              <p className="tf-brand-chip">TeamFlow Billing</p>
-              <h1 className="mt-3 text-4xl font-semibold tracking-tight">
-                Subscription management
-              </h1>
-              <p className="mt-3 max-w-3xl text-base leading-7 text-slate-600">
-                Manage the paid layer of the workspace without leaving the product surface. Stripe
-                handles checkout and the customer portal, while this page stays focused on state,
-                plan choices, and invoice history.
-              </p>
-              <div className="mt-6 grid gap-4 md:grid-cols-3">
+    <AppPageShell backHref="/dashboard" backLabel="Back to dashboard" maxWidth="5xl">
+      <ShellHeroHeader
+        controls={
+          <>
+            <p className="font-mono text-xs uppercase tracking-[0.24em] text-slate-400">
+              Control
+            </p>
+            <p className="mt-4 text-2xl font-semibold">Manage the paid layer.</p>
+            <p className="mt-3 text-sm leading-7 text-slate-300">
+              {subscription?.stripeCustomerId
+                ? "The Stripe customer is ready, so portal access is available."
+                : "Run one successful checkout to create the Stripe customer, then unlock the portal."}
+            </p>
+            <div className="mt-6 grid gap-3">
+              <button
+                className="tf-btn-ghost disabled:opacity-60"
+                disabled={!workspace || !subscription?.stripeCustomerId || isSubmitting !== null}
+                onClick={() => void handlePortalOpen()}
+                type="button"
+              >
+                {isSubmitting === "PORTAL" ? (
+                  <>
+                    <span className="tf-spinner mr-2" />
+                    Opening portal...
+                  </>
+                ) : (
+                  "Manage subscription"
+                )}
+              </button>
+              <button
+                className="tf-btn-primary"
+                disabled={!workspace || isSubmitting !== null}
+                onClick={() => void handleCheckout("PRO")}
+                type="button"
+              >
+                {isSubmitting === "PRO" ? (
+                  <>
+                    <span className="tf-spinner mr-2" />
+                    Starting checkout...
+                  </>
+                ) : (
+                  "Upgrade to Pro"
+                )}
+              </button>
+            </div>
+          </>
+        }
+        description="Manage the paid layer of the workspace without leaving the product surface. Stripe handles checkout and the customer portal, while this page stays focused on state, plan choices, and invoice history."
+        eyebrow="TeamFlow Billing"
+        metrics={
+          <div className="grid gap-4 md:grid-cols-3">
                 <div className="rounded-[1.5rem] border border-slate-200 bg-white p-4 shadow-sm">
                   <p className="font-mono text-[11px] uppercase tracking-[0.24em] text-slate-500">
                     Workspace
@@ -299,54 +333,10 @@ export function BillingShell() {
                     Recent billing records available
                   </p>
                 </div>
-              </div>
-            </div>
-
-            <div className="tf-dark-panel rounded-[2rem] p-6 text-slate-50">
-              <p className="font-mono text-xs uppercase tracking-[0.24em] text-slate-400">
-                Control
-              </p>
-              <p className="mt-4 text-2xl font-semibold">Manage the paid layer.</p>
-              <p className="mt-3 text-sm leading-7 text-slate-300">
-                {subscription?.stripeCustomerId
-                  ? "The Stripe customer is ready, so portal access is available."
-                  : "Run one successful checkout to create the Stripe customer, then unlock the portal."}
-              </p>
-              <div className="mt-6 grid gap-3">
-                <button
-                  className="tf-btn-ghost disabled:opacity-60"
-                  disabled={!workspace || !subscription?.stripeCustomerId || isSubmitting !== null}
-                  onClick={() => void handlePortalOpen()}
-                  type="button"
-                >
-                  {isSubmitting === "PORTAL" ? (
-                    <>
-                      <span className="tf-spinner mr-2" />
-                      Opening portal...
-                    </>
-                  ) : (
-                    "Manage subscription"
-                  )}
-                </button>
-                <button
-                  className="tf-btn-primary"
-                  disabled={!workspace || isSubmitting !== null}
-                  onClick={() => void handleCheckout("PRO")}
-                  type="button"
-                >
-                  {isSubmitting === "PRO" ? (
-                    <>
-                      <span className="tf-spinner mr-2" />
-                      Starting checkout...
-                    </>
-                  ) : (
-                    "Upgrade to Pro"
-                  )}
-                </button>
-              </div>
-            </div>
           </div>
-        </header>
+        }
+        title="Subscription management"
+      />
 
         {searchParams.get("checkout") === "success" ? (
           <div className="mt-6 rounded-2xl border border-[#2a9d8f]/25 bg-[#edf8f5] px-5 py-4 text-sm text-[#1f6c63]">
@@ -496,7 +486,6 @@ export function BillingShell() {
             )}
           </div>
         </section>
-      </section>
-    </main>
+    </AppPageShell>
   );
 }
