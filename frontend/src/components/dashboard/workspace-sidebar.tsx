@@ -179,13 +179,24 @@ export function WorkspaceSidebar({
           Current user
         </p>
         <div className="mt-4 flex items-center gap-3 rounded-[1.4rem] border border-white/8 bg-white/6 p-4 text-slate-50">
-          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[linear-gradient(135deg,_#f8fafc_0%,_#94a3b8_100%)] text-sm font-semibold tracking-[0.18em] text-slate-900 shadow-[inset_0_1px_0_rgba(255,255,255,0.45)]">
-            {userInitials}
-          </div>
-          <div className="min-w-0">
-            <p className="truncate text-lg font-semibold">{user?.name ?? "Unknown user"}</p>
-            <p className="mt-1 truncate text-sm text-slate-300">{user?.email}</p>
-          </div>
+          <Link className="flex min-w-0 flex-1 items-center gap-3 no-underline" href="/account">
+            {user?.avatarUrl ? (
+              /* eslint-disable-next-line @next/next/no-img-element */
+              <img
+                alt={`${user.name ?? "User"} avatar`}
+                className="h-12 w-12 rounded-2xl object-cover"
+                src={user.avatarUrl}
+              />
+            ) : (
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[linear-gradient(135deg,_#f8fafc_0%,_#94a3b8_100%)] text-sm font-semibold tracking-[0.18em] text-slate-900 shadow-[inset_0_1px_0_rgba(255,255,255,0.45)]">
+                {userInitials}
+              </div>
+            )}
+            <div className="min-w-0">
+              <p className="truncate text-lg font-semibold">{user?.name ?? "Unknown user"}</p>
+              <p className="mt-1 truncate text-sm text-slate-300">{user?.email}</p>
+            </div>
+          </Link>
         </div>
         <div className="mt-4 grid gap-3">
           <Link

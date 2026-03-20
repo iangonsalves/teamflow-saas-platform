@@ -143,6 +143,7 @@ export function DashboardShell() {
           id: me.user.sub,
           name: me.user.name,
           email: me.user.email,
+          avatarUrl: me.user.avatarUrl ?? null,
         });
 
         const workspaceItems = await apiRequestWithToken<WorkspaceSummary[]>(

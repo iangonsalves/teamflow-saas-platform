@@ -16,6 +16,7 @@ describe('AuthService', () => {
     user: {
       findUnique: jest.fn(),
       create: jest.fn(),
+      update: jest.fn(),
     },
   };
   const jwtService = {
@@ -49,6 +50,7 @@ describe('AuthService', () => {
       id: 'user-1',
       name: 'Ian',
       email: 'ian@example.com',
+      avatarUrl: null,
       passwordHash: 'hashed-password',
     });
     jwtService.signAsync.mockResolvedValue('signed-token');
@@ -65,6 +67,7 @@ describe('AuthService', () => {
         id: 'user-1',
         name: 'Ian',
         email: 'ian@example.com',
+        avatarUrl: null,
       },
     });
   });
@@ -86,6 +89,7 @@ describe('AuthService', () => {
       id: 'user-1',
       name: 'Ian',
       email: 'ian@example.com',
+      avatarUrl: null,
       passwordHash: 'hashed-password',
     });
     (bcrypt.compare as jest.Mock).mockResolvedValue(true);
@@ -102,6 +106,7 @@ describe('AuthService', () => {
         id: 'user-1',
         name: 'Ian',
         email: 'ian@example.com',
+        avatarUrl: null,
       },
     });
   });
@@ -111,6 +116,7 @@ describe('AuthService', () => {
       id: 'user-1',
       name: 'Ian',
       email: 'ian@example.com',
+      avatarUrl: null,
       passwordHash: 'hashed-password',
     });
     (bcrypt.compare as jest.Mock).mockResolvedValue(false);
@@ -121,5 +127,38 @@ describe('AuthService', () => {
         password: 'wrong-password',
       }),
     ).rejects.toBeInstanceOf(UnauthorizedException);
+  });
+
+  it('updates the authenticated user profile and returns a refreshed auth response', async () => {
+    prismaService.user.findUnique.mockResolvedValue({
+      id: 'user-1',
+      name: 'Ian',
+      email: 'ian@example.com',
+      avatarUrl: null,
+      passwordHash: 'hashed-password',
+    });
+    prismaService.user.update.mockResolvedValue({
+      id: 'user-1',
+      name: 'Ian Updated',
+      email: 'ian@example.com',
+      avatarUrl: 'https://example.com/avatar.png',
+      passwordHash: 'hashed-password',
+    });
+    jwtService.signAsync.mockResolvedValue('updated-token');
+
+    await expect(
+      authService.updateProfile('user-1', {
+        name: 'Ian Updated',
+        avatarUrl: 'https://example.com/avatar.png',
+      }),
+    ).resolves.toEqual({
+      accessToken: 'updated-token',
+      user: {
+        id: 'user-1',
+        name: 'Ian Updated',
+        email: 'ian@example.com',
+        avatarUrl: 'https://example.com/avatar.png',
+      },
+    });
   });
 });

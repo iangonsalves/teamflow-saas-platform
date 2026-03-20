@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { LandingAuthActions } from "@/components/landing-auth-actions";
 
 const platformCards = [
   {
@@ -51,18 +51,7 @@ export default function Home() {
               </p>
 
               <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-                <Link className="tf-btn-primary min-w-[180px]" href="/register">
-                  Create account
-                </Link>
-                <Link className="tf-btn-secondary min-w-[180px]" href="/login">
-                  Sign in
-                </Link>
-                <Link
-                  className="inline-flex min-w-[180px] items-center justify-center rounded-full border border-blue-200 bg-blue-50 px-6 py-3 text-sm font-medium text-blue-700 transition hover:border-blue-300 hover:bg-blue-100"
-                  href="/dashboard"
-                >
-                  View dashboard
-                </Link>
+                <LandingAuthActions />
               </div>
 
               <div className="mt-8 grid gap-4 md:grid-cols-3">
