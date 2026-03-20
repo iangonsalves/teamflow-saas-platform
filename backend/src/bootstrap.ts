@@ -1,5 +1,8 @@
 import { INestApplication, ValidationPipe } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { mkdirSync } from 'node:fs';
+import { join } from 'node:path';
+import express from 'express';
 
 type ConfigureAppOptions = {
   enableSwagger?: boolean;
@@ -25,6 +28,11 @@ export function configureApp(
   const expressApp = app.getHttpAdapter().getInstance?.();
   if (typeof expressApp?.disable === 'function') {
     expressApp.disable('x-powered-by');
+    const uploadsPath = join(process.cwd(), 'uploads');
+    const avatarUploadsPath = join(uploadsPath, 'avatars');
+    mkdirSync(uploadsPath, { recursive: true });
+    mkdirSync(avatarUploadsPath, { recursive: true });
+    expressApp.use('/uploads', express.static(uploadsPath));
   }
 
   app.use((request, response, next) => {

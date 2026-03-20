@@ -167,37 +167,41 @@ export function InvitationsPanel({
           className="mt-5 rounded-[1.8rem] border border-slate-200 bg-slate-50 p-4 shadow-sm"
           onSubmit={handleCreateInvitation}
         >
-          <div className="grid gap-3 sm:grid-cols-[1fr_180px_auto]">
-            <input
-              className="rounded-2xl border border-slate-900/10 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-slate-900/30"
-              onChange={(event) => setEmail(event.target.value)}
-              placeholder="invitee@example.com"
-              required
-              type="email"
-              value={email}
-            />
-            <select
-              className="rounded-2xl border border-slate-900/10 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-slate-900/30"
-              onChange={(event) => setRole(event.target.value)}
-              value={role}
-            >
-              <option value="MEMBER">Member</option>
-              <option value="ADMIN">Admin</option>
-            </select>
-            <button
-              className="tf-btn-primary"
-              disabled={isLoading}
-              type="submit"
-            >
-              {isLoading ? (
-                <>
-                  <span className="tf-spinner mr-2" />
-                  Creating...
-                </>
-              ) : (
-                "Create invite"
-              )}
-            </button>
+          <div className="grid gap-3">
+            <div className="grid gap-3 md:grid-cols-[minmax(0,1fr)_180px]">
+              <input
+                className="min-w-0 rounded-2xl border border-slate-900/10 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-slate-900/30"
+                onChange={(event) => setEmail(event.target.value)}
+                placeholder="invitee@example.com"
+                required
+                type="email"
+                value={email}
+              />
+              <select
+                className="min-w-0 rounded-2xl border border-slate-900/10 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-slate-900/30"
+                onChange={(event) => setRole(event.target.value)}
+                value={role}
+              >
+                <option value="MEMBER">Member</option>
+                <option value="ADMIN">Admin</option>
+              </select>
+            </div>
+            <div className="flex justify-start md:justify-end">
+              <button
+                className="tf-btn-primary w-full md:w-auto"
+                disabled={isLoading}
+                type="submit"
+              >
+                {isLoading ? (
+                  <>
+                    <span className="tf-spinner mr-2" />
+                    Creating...
+                  </>
+                ) : (
+                  "Create invite"
+                )}
+              </button>
+            </div>
           </div>
         </form>
       ) : (

@@ -24,10 +24,15 @@ export function DashboardHeader({
   onLogout,
 }: DashboardHeaderProps) {
   return (
-    <header className="rounded-[2.25rem] border border-slate-900/10 bg-white/82 p-6 shadow-[0_30px_90px_rgba(15,23,42,0.09)] backdrop-blur">
-      <div className="grid gap-6 xl:grid-cols-[minmax(0,1.1fr)_340px]">
-        <div className="tf-hero rounded-[2rem] p-6">
-          <p className="tf-brand-chip">TeamFlow Operations</p>
+    <header className="rounded-[2.15rem] border border-slate-200 bg-white p-5 shadow-[0_24px_70px_rgba(15,23,42,0.08)]">
+      <div className="grid gap-5 xl:grid-cols-[minmax(0,1.12fr)_332px]">
+        <div className="tf-hero rounded-[1.9rem] p-5 shadow-sm">
+          <div className="flex items-center justify-between gap-4">
+            <p className="tf-brand-chip">TeamFlow Operations</p>
+            <span className="rounded-full border border-slate-200 bg-white/90 px-3 py-1 font-mono text-[11px] uppercase tracking-[0.22em] text-slate-500">
+              Live overview
+            </span>
+          </div>
           <h1 className="mt-3 text-4xl font-semibold tracking-tight">
             {user ? `${user.name}, here is the state of your team.` : "Workspace overview"}
           </h1>
@@ -35,19 +40,19 @@ export function DashboardHeader({
             The overview is now a true command surface: pick the right workspace, scan current
             movement, and jump into workspace or project pages only when you need to act.
           </p>
-          <div className="mt-6 grid gap-4 md:grid-cols-4">
-            <div className="rounded-[1.5rem] border border-slate-200 bg-white p-4 shadow-sm">
+          <div className="mt-5 grid gap-3 md:grid-cols-2 2xl:grid-cols-4">
+            <div className="min-w-0 rounded-[1.35rem] border border-slate-200 bg-white p-4 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg">
               <p className="font-mono text-[11px] uppercase tracking-[0.24em] text-slate-500">
                 Active workspace
               </p>
-              <p className="mt-3 text-lg font-semibold text-slate-900">
+              <p className="mt-3 truncate text-lg font-semibold text-slate-900" title={activeWorkspaceName ?? "None yet"}>
                 {activeWorkspaceName ?? "None yet"}
               </p>
               <p className="mt-1 text-sm text-slate-600">
                 {formatRole(selectedWorkspaceRole)}
               </p>
             </div>
-            <div className="rounded-[1.5rem] border border-slate-200 bg-white p-4 shadow-sm">
+            <div className="min-w-0 rounded-[1.35rem] border border-slate-200 bg-white p-4 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg">
               <p className="font-mono text-[11px] uppercase tracking-[0.24em] text-slate-500">
                 Projects
               </p>
@@ -56,24 +61,29 @@ export function DashboardHeader({
                 Delivery lanes in the selected workspace
               </p>
             </div>
-            <div className="rounded-[1.5rem] border border-slate-200 bg-white p-4 shadow-sm">
+            <div className="min-w-0 rounded-[1.35rem] border border-slate-200 bg-white p-4 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg">
               <p className="font-mono text-[11px] uppercase tracking-[0.24em] text-slate-500">
                 Tasks
               </p>
               <p className="mt-3 text-3xl font-semibold text-slate-900">{taskCount}</p>
               <p className="mt-1 text-sm text-slate-600">{activeTaskCount} still in motion</p>
             </div>
-            <div className="rounded-[1.5rem] border border-slate-200 bg-white p-4 shadow-sm">
+            <div className="min-w-0 rounded-[1.35rem] border border-slate-200 bg-white p-4 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg">
               <p className="font-mono text-[11px] uppercase tracking-[0.24em] text-slate-500">
                 Team
               </p>
               <p className="mt-3 text-3xl font-semibold text-slate-900">{memberCount}</p>
-              <p className="mt-1 text-sm text-slate-600">{user?.email ?? "Signed-in user"}</p>
+              <p
+                className="mt-1 truncate text-xs text-slate-600"
+                title={user?.email ?? "Signed-in user"}
+              >
+                {user?.email ?? "Signed-in user"}
+              </p>
             </div>
           </div>
         </div>
 
-        <div className="tf-dark-panel rounded-[2rem] p-6 text-slate-50">
+        <div className="tf-dark-panel rounded-[1.9rem] border border-slate-800 p-5 text-slate-50">
           <p className="font-mono text-xs uppercase tracking-[0.24em] text-slate-400">
             Control
           </p>

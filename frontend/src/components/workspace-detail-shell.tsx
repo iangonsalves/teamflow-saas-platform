@@ -11,7 +11,6 @@ import {
   type AuthUser,
 } from "@/lib/auth-storage";
 import { InvitationsPanel } from "./invitations-panel";
-import { PageBackLink } from "./page-back-link";
 import { WorkspaceSidebar } from "./dashboard/workspace-sidebar";
 import type {
   ProjectSummary,
@@ -23,6 +22,8 @@ import type {
 import { formatRole } from "./dashboard/utils";
 import { WorkspaceMembersPanel } from "./workspace-members-panel";
 import { WorkspaceProjectsPanel } from "./workspace-projects-panel";
+import { AppPageShell } from "./shell/app-page-shell";
+import { ShellHeroHeader } from "./shell/shell-hero-header";
 import { Skeleton } from "./ui/skeleton";
 import { useToast } from "./ui/toast-provider";
 
@@ -83,7 +84,7 @@ export function WorkspaceDetailShell({
       try {
         const [me, workspaceItems, workspaceResponse, membersResponse, projectsResponse] =
           await Promise.all([
-            apiRequestWithToken<{ user: { sub: string; email: string; name: string } }>(
+            apiRequestWithToken<{ user: { sub: string; email: string; name: string; avatarUrl?: string | null } }>(
               "/auth/me",
               sessionToken,
             ),
@@ -107,6 +108,7 @@ export function WorkspaceDetailShell({
           id: me.user.sub,
           name: me.user.name,
           email: me.user.email,
+          avatarUrl: me.user.avatarUrl ?? null,
         });
         setWorkspaces(workspaceItems);
         setWorkspace(workspaceResponse);
@@ -381,24 +383,43 @@ export function WorkspaceDetailShell({
   }
 
   return (
-    <main className="min-h-screen bg-[radial-gradient(circle_at_top_left,_rgba(42,157,143,0.14),_transparent_24%),radial-gradient(circle_at_bottom_right,_rgba(231,111,81,0.12),_transparent_28%),linear-gradient(180deg,_#f8f3ea_0%,_#efe4d3_100%)] px-6 py-8 text-slate-900 sm:px-8">
-      <section className="mx-auto max-w-7xl">
-        <div className="mb-6">
-          <PageBackLink href="/dashboard" label="Back to overview" />
-        </div>
-
-        <header className="rounded-[2.25rem] border border-slate-900/10 bg-white/82 p-6 shadow-[0_30px_90px_rgba(15,23,42,0.09)] backdrop-blur">
-          <div className="grid gap-6 xl:grid-cols-[minmax(0,1.1fr)_340px]">
-            <div className="tf-hero rounded-[2rem] p-6">
-              <p className="tf-brand-chip">Workspace detail</p>
-              <h1 className="mt-3 text-4xl font-semibold tracking-tight">
-                {workspace?.name ?? "Workspace"}
-              </h1>
-              <p className="mt-3 text-base leading-7 text-slate-600">
-                This page is now the team operating surface: members, invitations, and project
-                planning in one place, with a clearer hierarchy than the old dashboard.
+    <AppPageShell backHref="/dashboard" backLabel="Back to overview" maxWidth="7xl">
+        <ShellHeroHeader
+          controls={
+            <>
+              <p className="font-mono text-xs uppercase tracking-[0.24em] text-slate-400">
+                Control
               </p>
-              <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-5">
+              <p className="mt-4 text-2xl font-semibold">Steer the team surface.</p>
+              <p className="mt-3 text-sm leading-7 text-slate-300">
+                Owner: {workspace?.owner.name ?? "Unknown"} · {ownerCount} owner slot · {projects.length} active lanes.
+              </p>
+              <div className="mt-6 grid gap-3">
+                <Link className="tf-btn-ghost" href="/settings/billing">
+                  Billing
+                </Link>
+                {projects[0] ? (
+                  <Link
+                    className="tf-btn-ghost"
+                    href={`/projects/${projects[0].id}?workspaceId=${workspaceId}`}
+                  >
+                    Open latest project
+                  </Link>
+                ) : null}
+                <button
+                  className="tf-btn-secondary border-white/15 bg-white text-slate-900 hover:border-white/20"
+                  onClick={handleLogout}
+                  type="button"
+                >
+                  Log out
+                </button>
+              </div>
+            </>
+          }
+          description="This page is now the team operating surface: members, invitations, and project planning in one place, with a clearer hierarchy than the old dashboard."
+          eyebrow="Workspace detail"
+          metrics={
+            <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
                 <div className="rounded-[1.5rem] border border-slate-200 bg-white p-4 shadow-sm">
                   <p className="font-mono text-[11px] uppercase tracking-[0.24em] text-slate-500">
                     Role
@@ -439,43 +460,10 @@ export function WorkspaceDetailShell({
                   </div>
                   <p className="mt-3 text-sm text-slate-600">Planning signal based on active projects and team size.</p>
                 </div>
-              </div>
             </div>
-
-            <div className="tf-dark-panel rounded-[2rem] p-6 text-slate-50">
-              <p className="font-mono text-xs uppercase tracking-[0.24em] text-slate-400">
-                Control
-              </p>
-              <p className="mt-4 text-2xl font-semibold">Steer the team surface.</p>
-              <p className="mt-3 text-sm leading-7 text-slate-300">
-                Owner: {workspace?.owner.name ?? "Unknown"} · {ownerCount} owner slot · {projects.length} active lanes.
-              </p>
-              <div className="mt-6 grid gap-3">
-                <Link
-                  className="tf-btn-ghost"
-                  href="/settings/billing"
-                >
-                  Billing
-                </Link>
-                {projects[0] ? (
-                  <Link
-                    className="tf-btn-ghost"
-                    href={`/projects/${projects[0].id}?workspaceId=${workspaceId}`}
-                  >
-                    Open latest project
-                  </Link>
-                ) : null}
-                <button
-                  className="tf-btn-secondary border-white/15 bg-white text-slate-900 hover:border-white/20"
-                  onClick={handleLogout}
-                  type="button"
-                >
-                  Log out
-                </button>
-              </div>
-            </div>
-          </div>
-        </header>
+          }
+          title={workspace?.name ?? "Workspace"}
+        />
 
         {errorMessage ? (
           <div className="mt-6 rounded-2xl border border-[#e76f51]/25 bg-[#fff0eb] px-5 py-4 text-sm text-[#a13f24]">
@@ -540,7 +528,6 @@ export function WorkspaceDetailShell({
             </div>
           </div>
         </section>
-      </section>
-    </main>
+    </AppPageShell>
   );
 }

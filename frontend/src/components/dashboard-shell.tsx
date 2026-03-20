@@ -32,6 +32,54 @@ type RecentTaskItem = TaskSummary & {
   workspaceId: string;
 };
 
+function getAuditVisual(action: string) {
+  if (action.startsWith("billing.")) {
+    return {
+      badgeClass: "bg-amber-100 text-amber-700",
+      dotClass: "bg-amber-500",
+      label: "BI",
+    };
+  }
+
+  if (action.startsWith("task.")) {
+    return {
+      badgeClass: "bg-blue-100 text-blue-700",
+      dotClass: "bg-blue-500",
+      label: "TK",
+    };
+  }
+
+  if (action.startsWith("workspace.member")) {
+    return {
+      badgeClass: "bg-teal-100 text-teal-700",
+      dotClass: "bg-teal-500",
+      label: "TM",
+    };
+  }
+
+  if (action.startsWith("workspace.")) {
+    return {
+      badgeClass: "bg-slate-200 text-slate-700",
+      dotClass: "bg-slate-500",
+      label: "WS",
+    };
+  }
+
+  if (action.startsWith("project.")) {
+    return {
+      badgeClass: "bg-violet-100 text-violet-700",
+      dotClass: "bg-violet-500",
+      label: "PR",
+    };
+  }
+
+  return {
+    badgeClass: "bg-slate-100 text-slate-700",
+    dotClass: "bg-slate-500",
+    label: "EV",
+  };
+}
+
 export function DashboardShell() {
   const router = useRouter();
   const { showToast } = useToast();
@@ -95,6 +143,7 @@ export function DashboardShell() {
           id: me.user.sub,
           name: me.user.name,
           email: me.user.email,
+          avatarUrl: me.user.avatarUrl ?? null,
         });
 
         const workspaceItems = await apiRequestWithToken<WorkspaceSummary[]>(
@@ -309,33 +358,61 @@ export function DashboardShell() {
   if (loading) {
     return (
       <main className="min-h-screen bg-[radial-gradient(circle_at_top_left,_rgba(42,157,143,0.14),_transparent_24%),radial-gradient(circle_at_bottom_right,_rgba(244,162,97,0.14),_transparent_30%),linear-gradient(180deg,_#f8f3ea_0%,_#efe4d3_100%)] px-6 py-10 text-slate-900">
-        <div className="mx-auto max-w-7xl space-y-6">
-          <div className="rounded-[2.25rem] border border-slate-200 bg-white p-6 shadow-md">
-            <Skeleton className="h-4 w-40 rounded-full" />
-            <Skeleton className="mt-5 h-12 w-[min(30rem,85%)] rounded-2xl" />
-            <div className="mt-6 grid gap-4 md:grid-cols-4">
-              {Array.from({ length: 4 }).map((_, index) => (
-                <div className="rounded-[1.5rem] border border-slate-200 bg-slate-50 p-4" key={index}>
-                  <Skeleton className="h-3 w-20 rounded-full" />
-                  <Skeleton className="mt-4 h-8 w-16 rounded-xl" />
-                  <Skeleton className="mt-3 h-3 w-28 rounded-full" />
+        <div className="mx-auto max-w-[1560px]">
+          <div className="rounded-[2.7rem] border border-white/70 bg-white/52 p-4 shadow-[0_40px_120px_rgba(15,23,42,0.12)] backdrop-blur-[10px] xl:p-5">
+            <div className="grid gap-5 xl:grid-cols-[280px_minmax(0,1fr)]">
+              <div className="flex min-h-[calc(100vh-7rem)] flex-col rounded-[2rem] border border-slate-800 bg-[linear-gradient(180deg,_#151d31_0%,_#101725_100%)] p-3 shadow-[0_24px_80px_rgba(15,23,42,0.18)]">
+                <div className="rounded-[1.35rem] px-3 py-4">
+                  <Skeleton className="h-10 w-40 rounded-2xl" />
                 </div>
-              ))}
-            </div>
-          </div>
-          <div className="grid gap-6 xl:grid-cols-[240px_minmax(0,1fr)]">
-            <div className="rounded-[2rem] border border-slate-200 bg-white p-5 shadow-md">
-              <Skeleton className="h-4 w-24 rounded-full" />
-              <div className="mt-4 space-y-3">
-                {Array.from({ length: 3 }).map((_, index) => (
-                  <Skeleton className="h-20 rounded-[1.5rem]" key={index} />
-                ))}
+                <div className="mt-2 rounded-[1.6rem] border border-white/8 bg-white/4 p-3">
+                  <Skeleton className="h-4 w-24 rounded-full" />
+                  <div className="mt-4 space-y-3">
+                    {Array.from({ length: 4 }).map((_, index) => (
+                      <Skeleton className="h-20 rounded-[1.2rem]" key={index} />
+                    ))}
+                  </div>
+                  <Skeleton className="mt-5 h-12 rounded-2xl" />
+                  <Skeleton className="mt-3 h-11 rounded-full" />
+                </div>
+                <div className="mt-auto rounded-[1.75rem] border border-white/8 bg-white/4 p-4">
+                  <Skeleton className="h-16 rounded-[1.4rem]" />
+                  <Skeleton className="mt-4 h-11 rounded-full" />
+                </div>
               </div>
-            </div>
-            <div className="grid gap-6">
-              <Skeleton className="h-72 rounded-[2rem]" />
-              <div className="grid gap-6 xl:grid-cols-2">
-                <Skeleton className="h-72 rounded-[2rem]" />
+
+              <div className="space-y-5">
+                <div className="rounded-[2.25rem] border border-slate-200 bg-white p-6 shadow-md">
+                  <div className="grid gap-6 xl:grid-cols-[minmax(0,1.12fr)_340px]">
+                    <div className="tf-hero rounded-[2rem] p-6 shadow-sm">
+                      <Skeleton className="h-4 w-32 rounded-full" />
+                      <Skeleton className="mt-5 h-12 w-[min(32rem,85%)] rounded-2xl" />
+                      <div className="mt-6 grid gap-4 md:grid-cols-2 2xl:grid-cols-4">
+                        {Array.from({ length: 4 }).map((_, index) => (
+                          <div className="rounded-[1.5rem] border border-slate-200 bg-white p-4 shadow-sm" key={index}>
+                            <Skeleton className="h-3 w-20 rounded-full" />
+                            <Skeleton className="mt-4 h-8 w-16 rounded-xl" />
+                            <Skeleton className="mt-3 h-3 w-28 rounded-full" />
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                    <div className="rounded-[2rem] border border-slate-800 bg-slate-900 p-6">
+                      <Skeleton className="h-4 w-24 rounded-full" />
+                      <Skeleton className="mt-5 h-10 w-48 rounded-2xl" />
+                      <div className="mt-6 space-y-3">
+                        <Skeleton className="h-11 rounded-full" />
+                        <Skeleton className="h-11 rounded-full" />
+                        <Skeleton className="h-11 rounded-full" />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <Skeleton className="h-64 rounded-[2rem]" />
+                <div className="grid gap-6 xl:grid-cols-2">
+                  <Skeleton className="h-72 rounded-[2rem]" />
+                  <Skeleton className="h-72 rounded-[2rem]" />
+                </div>
                 <Skeleton className="h-72 rounded-[2rem]" />
               </div>
             </div>
@@ -347,40 +424,41 @@ export function DashboardShell() {
 
   return (
     <main className="min-h-screen bg-[radial-gradient(circle_at_top_left,_rgba(42,157,143,0.14),_transparent_24%),radial-gradient(circle_at_bottom_right,_rgba(244,162,97,0.14),_transparent_30%),linear-gradient(180deg,_#f8f3ea_0%,_#efe4d3_100%)] px-6 py-8 text-slate-900 sm:px-8">
-      <section className="mx-auto max-w-7xl">
-        <DashboardHeader
-          activeTaskCount={workspaceActiveTaskCount}
-          activeWorkspaceName={selectedWorkspace?.name ?? null}
-          memberCount={workspaceMembers.length}
-          onLogout={handleLogout}
-          projectCount={projects.length}
-          selectedWorkspaceRole={selectedWorkspaceRole}
-          taskCount={workspaceTaskCount}
-          user={user}
-        />
+      <section className="mx-auto max-w-[1500px]">
+        <div className="rounded-[2.5rem] border border-white/70 bg-white/52 p-4 shadow-[0_40px_120px_rgba(15,23,42,0.12)] backdrop-blur-[10px] xl:p-4">
+          <div className="grid gap-4 xl:grid-cols-[280px_minmax(0,1fr)]">
+            <WorkspaceSidebar
+              onCreateWorkspace={(name) => {
+                void handleCreateWorkspace(name);
+              }}
+              onWorkspaceChange={handleWorkspaceChange}
+              selectedWorkspaceId={selectedWorkspaceId}
+              user={user}
+              workspaceActionMessage={workspaceActionMessage}
+              workspaceLoading={workspaceLoading}
+              workspaces={workspaces}
+            />
 
-        {errorMessage ? (
-          <div className="mt-6 rounded-2xl border border-[#e76f51]/25 bg-[#fff0eb] px-5 py-4 text-sm text-[#a13f24]">
-            {errorMessage}
-          </div>
-        ) : null}
+            <div className="space-y-4">
+              <DashboardHeader
+                activeTaskCount={workspaceActiveTaskCount}
+                activeWorkspaceName={selectedWorkspace?.name ?? null}
+                memberCount={workspaceMembers.length}
+                onLogout={handleLogout}
+                projectCount={projects.length}
+                selectedWorkspaceRole={selectedWorkspaceRole}
+                taskCount={workspaceTaskCount}
+                user={user}
+              />
 
-        <section className="mt-6 grid gap-6 xl:grid-cols-[240px_minmax(0,1fr)]">
-          <WorkspaceSidebar
-            onCreateWorkspace={(name) => {
-              void handleCreateWorkspace(name);
-            }}
-            onWorkspaceChange={handleWorkspaceChange}
-            selectedWorkspaceId={selectedWorkspaceId}
-            user={user}
-            workspaceActionMessage={workspaceActionMessage}
-            workspaceLoading={workspaceLoading}
-            workspaces={workspaces}
-          />
+              {errorMessage ? (
+                <div className="rounded-2xl border border-[#e76f51]/25 bg-[#fff0eb] px-5 py-4 text-sm text-[#a13f24]">
+                  {errorMessage}
+                </div>
+              ) : null}
 
-          <div className="space-y-6">
-            <section className="rounded-[2.2rem] border border-slate-900/10 bg-white/82 p-6 shadow-[0_28px_80px_rgba(15,23,42,0.08)] backdrop-blur">
-              <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
+            <section className="rounded-[2rem] border border-slate-900/10 bg-white/82 p-5 shadow-[0_28px_80px_rgba(15,23,42,0.08)] backdrop-blur">
+              <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
                 <div className="max-w-3xl">
                   <p className="font-mono text-xs uppercase tracking-[0.22em] text-slate-500">
                     Overview
@@ -398,7 +476,7 @@ export function DashboardShell() {
                 <div className="flex flex-wrap gap-3">
                   {selectedWorkspace ? (
                     <Link
-                      className="inline-flex items-center justify-center rounded-full bg-slate-900 px-5 py-3 text-sm font-medium text-white no-underline transition hover:bg-slate-700"
+                      className="tf-btn-primary no-underline"
                       href={`/workspaces/${selectedWorkspace.id}`}
                     >
                       Open workspace
@@ -406,7 +484,7 @@ export function DashboardShell() {
                   ) : null}
                   {spotlightProject ? (
                     <Link
-                      className="inline-flex items-center justify-center rounded-full border border-slate-900/10 bg-[#e7f3f0] px-5 py-3 text-sm font-medium text-slate-900 no-underline transition hover:bg-[#d9ece7]"
+                      className="tf-btn-secondary no-underline"
                       href={`/projects/${spotlightProject.id}?workspaceId=${selectedWorkspaceId}`}
                     >
                       Open active project
@@ -420,8 +498,8 @@ export function DashboardShell() {
                 </div>
               </div>
 
-              <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-                <div className="rounded-[1.6rem] border border-slate-900/10 bg-[#fff7ec] p-5">
+              <div className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+                <div className="rounded-[1.45rem] border border-slate-200 bg-[linear-gradient(180deg,_#fff6ea_0%,_#fffdf8_100%)] p-4 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg">
                   <p className="font-mono text-[11px] uppercase tracking-[0.24em] text-slate-500">
                     Workspace lane
                   </p>
@@ -432,7 +510,7 @@ export function DashboardShell() {
                     Members, invites, and project planning now live on the workspace page.
                   </p>
                 </div>
-                <div className="rounded-[1.6rem] border border-slate-900/10 bg-white p-5">
+                <div className="rounded-[1.45rem] border border-slate-200 bg-white p-4 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg">
                   <p className="font-mono text-[11px] uppercase tracking-[0.24em] text-slate-500">
                     Active projects
                   </p>
@@ -443,16 +521,16 @@ export function DashboardShell() {
                     Focused delivery lanes with separate task-board pages.
                   </p>
                 </div>
-                <div className="rounded-[1.6rem] border border-slate-900/10 bg-slate-900 p-5 text-slate-50">
+                <div className="rounded-[1.45rem] border border-slate-200 bg-[linear-gradient(180deg,_#f6f8ff_0%,_#eef2ff_100%)] p-4 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg">
                   <p className="font-mono text-[11px] uppercase tracking-[0.24em] text-slate-400">
                     Recent movement
                   </p>
-                  <p className="mt-3 text-3xl font-semibold">{recentTasks.length}</p>
-                  <p className="mt-2 text-sm text-slate-300">
+                  <p className="mt-3 text-3xl font-semibold text-slate-900">{recentTasks.length}</p>
+                  <p className="mt-2 text-sm text-slate-600">
                     Recent tasks surfaced from the selected workspace.
                   </p>
                 </div>
-                <div className="rounded-[1.6rem] border border-blue-200 bg-white p-5 shadow-sm">
+                <div className="rounded-[1.45rem] border border-slate-200 bg-white p-4 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg">
                   <p className="font-mono text-[11px] uppercase tracking-[0.24em] text-slate-500">
                     Delivery progress
                   </p>
@@ -470,8 +548,8 @@ export function DashboardShell() {
               </div>
             </section>
 
-            <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
-              <section className="rounded-[2.1rem] border border-slate-900/10 bg-white/82 p-6 shadow-[0_24px_70px_rgba(15,23,42,0.08)] backdrop-blur">
+            <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
+              <section className="rounded-[1.95rem] border border-slate-900/10 bg-white/82 p-5 shadow-[0_24px_70px_rgba(15,23,42,0.08)] backdrop-blur">
                 <div className="flex items-end justify-between gap-4">
                   <div>
                     <p className="font-mono text-xs uppercase tracking-[0.22em] text-slate-500">
@@ -483,7 +561,7 @@ export function DashboardShell() {
                   </div>
                   {selectedWorkspace ? (
                     <Link
-                      className="rounded-full border border-slate-900/10 bg-white px-4 py-2 text-sm font-medium text-slate-900 no-underline transition hover:bg-slate-50"
+                      className="tf-btn-secondary px-4 py-2 no-underline"
                       href={`/workspaces/${selectedWorkspace.id}`}
                     >
                       View workspace
@@ -491,11 +569,11 @@ export function DashboardShell() {
                   ) : null}
                 </div>
 
-                <div className="mt-5 grid gap-3">
+                <div className="mt-4 grid gap-3">
                   {projects.length > 0 ? (
                     projects.slice(0, 4).map((project) => (
                       <Link
-                        className="rounded-[1.5rem] border border-slate-900/10 bg-[#fffdfa] p-4 no-underline transition hover:border-slate-900/25 hover:shadow-[0_14px_34px_rgba(15,23,42,0.08)]"
+                        className="rounded-[1.5rem] border border-slate-200 bg-slate-50 p-4 no-underline transition-all duration-200 hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-lg"
                         href={`/projects/${project.id}?workspaceId=${selectedWorkspaceId}`}
                         key={project.id}
                       >
@@ -508,7 +586,7 @@ export function DashboardShell() {
                               {project.description || "No description yet."}
                             </p>
                           </div>
-                          <span className="rounded-full bg-[#edf8f5] px-3 py-1 text-[11px] uppercase tracking-[0.18em] text-[#1f6c63]">
+                          <span className="rounded-full bg-blue-600 px-3 py-1 text-[11px] uppercase tracking-[0.18em] text-white">
                             Open
                           </span>
                         </div>
@@ -530,7 +608,7 @@ export function DashboardShell() {
                 </div>
               </section>
 
-              <section className="rounded-[2.1rem] border border-slate-900/10 bg-white/82 p-6 shadow-[0_24px_70px_rgba(15,23,42,0.08)] backdrop-blur">
+              <section className="rounded-[1.95rem] border border-slate-900/10 bg-white/82 p-5 shadow-[0_24px_70px_rgba(15,23,42,0.08)] backdrop-blur">
                 <div className="flex items-end justify-between gap-4">
                   <div>
                     <p className="font-mono text-xs uppercase tracking-[0.22em] text-slate-500">
@@ -542,11 +620,11 @@ export function DashboardShell() {
                   </div>
                 </div>
 
-                <div className="mt-5 grid gap-3">
+                <div className="mt-4 grid gap-3">
                   {recentTasks.length > 0 ? (
                     recentTasks.map((task) => (
                       <Link
-                        className="rounded-[1.5rem] border border-slate-900/10 bg-[#fffdfa] p-4 no-underline transition hover:border-slate-900/25 hover:shadow-[0_14px_34px_rgba(15,23,42,0.08)]"
+                        className="rounded-[1.5rem] border border-slate-200 bg-slate-50 p-4 no-underline transition-all duration-200 hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-lg"
                         href={`/projects/${task.projectId}?workspaceId=${task.workspaceId}`}
                         key={task.id}
                       >
@@ -580,7 +658,7 @@ export function DashboardShell() {
               </section>
             </div>
 
-            <section className="rounded-[2.1rem] border border-slate-900/10 bg-white/82 p-6 shadow-[0_24px_70px_rgba(15,23,42,0.08)] backdrop-blur">
+            <section className="rounded-[1.95rem] border border-slate-900/10 bg-white/82 p-5 shadow-[0_24px_70px_rgba(15,23,42,0.08)] backdrop-blur">
               <div className="flex items-end justify-between gap-4">
                 <div>
                   <p className="font-mono text-xs uppercase tracking-[0.22em] text-slate-500">
@@ -592,7 +670,7 @@ export function DashboardShell() {
                 </div>
                 {selectedWorkspace ? (
                   <Link
-                    className="rounded-full border border-slate-900/10 bg-white px-4 py-2 text-sm font-medium text-slate-900 no-underline transition hover:bg-slate-50"
+                    className="tf-btn-secondary px-4 py-2 no-underline"
                     href={`/workspaces/${selectedWorkspace.id}`}
                   >
                     Manage workspace
@@ -600,34 +678,61 @@ export function DashboardShell() {
                 ) : null}
               </div>
 
-              <div className="mt-5 grid gap-3 lg:grid-cols-2">
+              <div className="mt-4 grid gap-3 lg:grid-cols-2">
                 {auditLogs.length > 0 ? (
-                  auditLogs.map((log) => (
-                    <div
-                      className="rounded-[1.5rem] border border-slate-900/10 bg-[#fffdfa] p-4"
-                      key={log.id}
-                    >
-                      <p className="text-sm font-semibold text-slate-900">
-                        {formatAuditAction(log.action)}
-                      </p>
-                      <p className="mt-1 text-sm text-slate-600">
-                        {log.actor?.name ?? "System"} on{" "}
-                        {new Date(log.createdAt).toLocaleString()}
-                      </p>
-                      <p className="mt-3 text-xs uppercase tracking-[0.18em] text-slate-500">
-                        {log.entityType}
-                      </p>
-                    </div>
-                  ))
+                  auditLogs.map((log) => {
+                    const visual = getAuditVisual(log.action);
+
+                    return (
+                      <div
+                        className="rounded-[1.35rem] border border-slate-200 bg-slate-50/95 p-4 shadow-sm"
+                        key={log.id}
+                      >
+                        <div className="flex items-start justify-between gap-4">
+                          <div className="flex min-w-0 items-start gap-3">
+                            <div
+                              className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl text-[11px] font-semibold tracking-[0.18em] ${visual.badgeClass}`}
+                            >
+                              {visual.label}
+                            </div>
+                            <div className="min-w-0">
+                              <p className="truncate text-sm font-semibold text-slate-900">
+                                {formatAuditAction(log.action)}
+                              </p>
+                              <div className="mt-1 flex items-center gap-2">
+                                <span className={`h-2 w-2 rounded-full ${visual.dotClass}`} />
+                                <p className="truncate text-[11px] uppercase tracking-[0.2em] text-slate-500">
+                                  {log.entityType}
+                                </p>
+                              </div>
+                              <p className="mt-2 truncate text-sm text-slate-600">
+                                {log.actor?.name ?? "System"}
+                              </p>
+                            </div>
+                          </div>
+                          <p className="shrink-0 text-xs text-slate-500">
+                            {new Date(log.createdAt).toLocaleTimeString([], {
+                              hour: "numeric",
+                              minute: "2-digit",
+                            })}
+                          </p>
+                        </div>
+                      </div>
+                    );
+                  })
                 ) : (
-                  <div className="rounded-[1.5rem] border border-dashed border-slate-900/15 bg-[#fffdfa] px-5 py-8 text-sm text-slate-600">
-                    Activity history will appear here once the workspace starts seeing member, project, or task changes.
+                  <div className="tf-empty-state rounded-[1.5rem] px-5 py-8 text-center text-sm text-slate-600">
+                    <p className="text-lg font-semibold text-slate-900">No recent activity</p>
+                    <p className="mt-2">
+                      Member, project, and task changes will appear here as the workspace starts moving.
+                    </p>
                   </div>
                 )}
               </div>
             </section>
+            </div>
           </div>
-        </section>
+        </div>
       </section>
     </main>
   );

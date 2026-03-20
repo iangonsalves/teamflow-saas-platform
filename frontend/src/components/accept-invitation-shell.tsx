@@ -4,7 +4,8 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { apiRequestWithToken } from "@/lib/api";
 import { getAccessToken } from "@/lib/auth-storage";
-import { PageBackLink } from "./page-back-link";
+import { AppPageShell } from "./shell/app-page-shell";
+import { ShellHeroHeader } from "./shell/shell-hero-header";
 import { useToast } from "./ui/toast-provider";
 
 export function AcceptInvitationShell() {
@@ -62,45 +63,10 @@ export function AcceptInvitationShell() {
   }
 
   return (
-    <main className="min-h-screen bg-[radial-gradient(circle_at_top_left,_rgba(33,158,188,0.18),_transparent_28%),radial-gradient(circle_at_bottom_right,_rgba(244,162,97,0.24),_transparent_30%),linear-gradient(180deg,_#f7f1e7_0%,_#efe7d8_100%)] px-6 py-10 text-slate-900">
-      <div className="mx-auto mb-6 max-w-3xl">
-        <PageBackLink href="/dashboard" label="Back to dashboard" />
-      </div>
-      <section className="mx-auto max-w-4xl rounded-[2.2rem] border border-slate-200 bg-white p-6 shadow-[0_28px_90px_rgba(15,23,42,0.1)]">
-        <div className="grid gap-6 lg:grid-cols-[minmax(0,1.1fr)_320px]">
-          <div className="tf-hero rounded-[2rem] p-6">
-            <p className="tf-brand-chip">TeamFlow Invitation</p>
-            <h1 className="mt-3 text-4xl font-semibold tracking-tight">
-              Accept your workspace invite.
-            </h1>
-            <p className="mt-4 max-w-2xl text-base leading-7 text-slate-600">
-              If you are signed in with the invited email address, TeamFlow will
-              add you to the workspace immediately after acceptance.
-            </p>
-
-            <div className="mt-6 rounded-[1.5rem] border border-slate-200 bg-white p-4 shadow-sm">
-              <p className="font-mono text-[11px] uppercase tracking-[0.24em] text-slate-500">
-                Invitation token
-              </p>
-              <p className="mt-3 break-all text-sm text-slate-700">
-                {token ?? "Missing token in URL"}
-              </p>
-            </div>
-
-            {errorMessage ? (
-              <div className="mt-4 rounded-2xl border border-[#e76f51]/25 bg-[#fff0eb] px-4 py-3 text-sm text-[#a13f24]">
-                {errorMessage}
-              </div>
-            ) : null}
-
-            {successMessage ? (
-              <div className="mt-4 rounded-2xl border border-[#2a9d8f]/25 bg-[#edf8f5] px-4 py-3 text-sm text-[#1f6c63]">
-                {successMessage}
-              </div>
-            ) : null}
-          </div>
-
-          <div className="tf-dark-panel rounded-[2rem] p-6 text-slate-50">
+    <AppPageShell backHref="/dashboard" backLabel="Back to dashboard" maxWidth="4xl">
+      <ShellHeroHeader
+        controls={
+          <>
             <p className="font-mono text-xs uppercase tracking-[0.24em] text-slate-400">
               Control
             </p>
@@ -132,9 +98,36 @@ export function AcceptInvitationShell() {
                 Return to dashboard
               </button>
             </div>
-          </div>
-        </div>
-      </section>
-    </main>
+          </>
+        }
+        description="If you are signed in with the invited email address, TeamFlow will add you to the workspace immediately after acceptance."
+        eyebrow="TeamFlow Invitation"
+        metrics={
+          <>
+            <div className="rounded-[1.5rem] border border-slate-200 bg-white p-4 shadow-sm">
+              <p className="font-mono text-[11px] uppercase tracking-[0.24em] text-slate-500">
+                Invitation token
+              </p>
+              <p className="mt-3 break-all text-sm text-slate-700">
+                {token ?? "Missing token in URL"}
+              </p>
+            </div>
+
+            {errorMessage ? (
+              <div className="mt-4 rounded-2xl border border-[#e76f51]/25 bg-[#fff0eb] px-4 py-3 text-sm text-[#a13f24]">
+                {errorMessage}
+              </div>
+            ) : null}
+
+            {successMessage ? (
+              <div className="mt-4 rounded-2xl border border-[#2a9d8f]/25 bg-[#edf8f5] px-4 py-3 text-sm text-[#1f6c63]">
+                {successMessage}
+              </div>
+            ) : null}
+          </>
+        }
+        title="Accept your workspace invite."
+      />
+    </AppPageShell>
   );
 }
