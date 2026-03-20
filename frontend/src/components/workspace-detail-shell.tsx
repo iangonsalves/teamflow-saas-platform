@@ -84,7 +84,7 @@ export function WorkspaceDetailShell({
       try {
         const [me, workspaceItems, workspaceResponse, membersResponse, projectsResponse] =
           await Promise.all([
-            apiRequestWithToken<{ user: { sub: string; email: string; name: string } }>(
+            apiRequestWithToken<{ user: { sub: string; email: string; name: string; avatarUrl?: string | null } }>(
               "/auth/me",
               sessionToken,
             ),
@@ -108,6 +108,7 @@ export function WorkspaceDetailShell({
           id: me.user.sub,
           name: me.user.name,
           email: me.user.email,
+          avatarUrl: me.user.avatarUrl ?? null,
         });
         setWorkspaces(workspaceItems);
         setWorkspace(workspaceResponse);

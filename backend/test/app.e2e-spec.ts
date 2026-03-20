@@ -63,7 +63,38 @@ describe('TeamFlow API (e2e)', () => {
     expect(meResponse.body.user).toMatchObject({
       email,
       name: 'E2E Auth User',
+      avatarUrl: null,
     });
+  });
+
+  it('updates the authenticated user profile', async () => {
+    const email = `e2e-profile-${Date.now()}@example.com`;
+    const registerResponse = await request(httpServer)
+      .post('/api/auth/register')
+      .send({
+        name: 'Profile User',
+        email,
+        password: 'password123',
+      })
+      .expect(201);
+
+    const token = registerResponse.body.accessToken;
+
+    const updateResponse = await request(httpServer)
+      .patch('/api/auth/me')
+      .set('Authorization', `Bearer ${token}`)
+      .send({
+        name: 'Profile User Updated',
+        avatarUrl: 'https://example.com/avatar.png',
+      })
+      .expect(200);
+
+    expect(updateResponse.body.user).toMatchObject({
+      email,
+      name: 'Profile User Updated',
+      avatarUrl: 'https://example.com/avatar.png',
+    });
+    expect(typeof updateResponse.body.accessToken).toBe('string');
   });
 
   it('creates and lists workspaces for the authenticated user', async () => {
