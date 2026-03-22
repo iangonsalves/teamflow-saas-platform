@@ -257,6 +257,7 @@ npm run prisma:studio
 - `npm run build` compile the Nest app
 - `npm run test` run unit tests
 - `npm run test:e2e` run end-to-end tests
+- `npm run prisma:seed` populate repeatable demo data
 - `npm run prisma:studio` open Prisma Studio
 
 ## Key Feature Implementation
@@ -295,8 +296,11 @@ npm install
 cp ../.env.example .env
 npx prisma generate
 npx prisma migrate dev
+npm run prisma:seed
 npm run start:dev
 ```
+
+The seed script is additive, so it is meant to create a stable demo baseline without wiping existing records first.
 
 ## Local Storage And Schema Locations
 
