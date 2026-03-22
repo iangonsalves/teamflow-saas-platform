@@ -4,6 +4,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import * as bcrypt from 'bcrypt';
 import { PrismaService } from '../prisma/prisma.service';
 import { AuthService } from './auth.service';
+import type { AvatarUpload } from './types/avatar-upload.type';
 
 jest.mock('bcrypt', () => ({
   hash: jest.fn(),
@@ -25,6 +26,12 @@ describe('AuthService', () => {
 
   beforeEach(async () => {
     jest.clearAllMocks();
+    process.env.SUPABASE_URL = 'https://example.supabase.co';
+    process.env.SUPABASE_SERVICE_ROLE_KEY = 'service-role-key';
+    process.env.SUPABASE_STORAGE_BUCKET = 'avatars';
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: true,
+    } as Response);
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -147,10 +154,17 @@ describe('AuthService', () => {
     jwtService.signAsync.mockResolvedValue('updated-token');
 
     await expect(
-      authService.updateProfile('user-1', {
-        name: 'Ian Updated',
-        avatarUrl: 'https://example.com/avatar.png',
-      }),
+      authService.updateProfile(
+        'user-1',
+        {
+          name: 'Ian Updated',
+        },
+        {
+          buffer: Buffer.from('avatar'),
+          mimetype: 'image/png',
+          originalname: 'avatar.png',
+        } as AvatarUpload,
+      ),
     ).resolves.toEqual({
       accessToken: 'updated-token',
       user: {

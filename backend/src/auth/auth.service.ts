@@ -1,18 +1,20 @@
 import {
   ConflictException,
-  NotFoundException,
+  InternalServerErrorException,
   Injectable,
+  NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { User } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
-import { existsSync, unlinkSync } from 'node:fs';
-import { join } from 'node:path';
+import { randomUUID } from 'node:crypto';
+import { extname } from 'node:path';
 import { PrismaService } from '../prisma/prisma.service';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
 import { UpdateProfileDto } from './dto/update-profile.dto';
+import type { AvatarUpload } from './types/avatar-upload.type';
 
 @Injectable()
 export class AuthService {
@@ -87,7 +89,7 @@ export class AuthService {
   async updateProfile(
     userId: string,
     updateProfileDto: UpdateProfileDto,
-    uploadedAvatarUrl?: string,
+    avatarFile?: AvatarUpload,
   ) {
     const existingUser = await this.prisma.user.findUnique({
       where: { id: userId },
@@ -99,6 +101,9 @@ export class AuthService {
 
     const name = updateProfileDto.name?.trim();
     const shouldRemoveAvatar = updateProfileDto.removeAvatar === true;
+    const uploadedAvatarUrl = avatarFile
+      ? await this.uploadAvatarToSupabase(userId, avatarFile)
+      : undefined;
     const nextAvatarUrl =
       uploadedAvatarUrl !== undefined
         ? uploadedAvatarUrl
@@ -114,23 +119,73 @@ export class AuthService {
       },
     });
 
-    if (
-      existingUser.avatarUrl &&
-      existingUser.avatarUrl !== updatedUser.avatarUrl &&
-      existingUser.avatarUrl.includes('/uploads/avatars/')
-    ) {
-      const filename = existingUser.avatarUrl.split('/uploads/avatars/')[1];
-
-      if (filename) {
-        const filePath = join(process.cwd(), 'uploads', 'avatars', filename);
-
-        if (existsSync(filePath)) {
-          unlinkSync(filePath);
-        }
-      }
+    if (existingUser.avatarUrl && existingUser.avatarUrl !== updatedUser.avatarUrl) {
+      await this.deleteAvatarFromSupabase(existingUser.avatarUrl);
     }
 
     return this.buildAuthResponse(updatedUser);
+  }
+
+  private async uploadAvatarToSupabase(
+    userId: string,
+    avatarFile: AvatarUpload,
+  ) {
+    const supabaseUrl = process.env.SUPABASE_URL;
+    const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    const bucket = process.env.SUPABASE_STORAGE_BUCKET ?? 'avatars';
+
+    if (!supabaseUrl || !supabaseKey) {
+      throw new InternalServerErrorException(
+        'Supabase storage is not configured.',
+      );
+    }
+
+    const extension = extname(avatarFile.originalname) || '.png';
+    const objectPath = `${userId}/avatar-${randomUUID()}${extension}`;
+    const uploadUrl = `${supabaseUrl}/storage/v1/object/${bucket}/${objectPath}`;
+
+    const response = await fetch(uploadUrl, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${supabaseKey}`,
+        apikey: supabaseKey,
+        'Content-Type': avatarFile.mimetype,
+        'x-upsert': 'true',
+      },
+      body: new Uint8Array(avatarFile.buffer),
+    });
+
+    if (!response.ok) {
+      throw new InternalServerErrorException('Failed to upload avatar.');
+    }
+
+    return `${supabaseUrl}/storage/v1/object/public/${bucket}/${objectPath}`;
+  }
+
+  private async deleteAvatarFromSupabase(avatarUrl: string) {
+    const supabaseUrl = process.env.SUPABASE_URL;
+    const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    const bucket = process.env.SUPABASE_STORAGE_BUCKET ?? 'avatars';
+
+    if (!supabaseUrl || !supabaseKey) {
+      return;
+    }
+
+    const publicPrefix = `${supabaseUrl}/storage/v1/object/public/${bucket}/`;
+    if (!avatarUrl.startsWith(publicPrefix)) {
+      return;
+    }
+
+    const objectPath = avatarUrl.slice(publicPrefix.length);
+    const deleteUrl = `${supabaseUrl}/storage/v1/object/${bucket}/${objectPath}`;
+
+    await fetch(deleteUrl, {
+      method: 'DELETE',
+      headers: {
+        Authorization: `Bearer ${supabaseKey}`,
+        apikey: supabaseKey,
+      },
+    }).catch(() => undefined);
   }
 
   private async buildAuthResponse(user: User) {

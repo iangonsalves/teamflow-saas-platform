@@ -1,98 +1,316 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# TeamFlow Backend
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+I built this backend to be the operational core of TeamFlow.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+It owns:
 
-## Description
+- authentication and profile updates
+- workspace and membership rules
+- project and task operations
+- invitation management
+- audit logging
+- billing integration
+- database access
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+The frontend consumes this API, but this is where the actual business rules live.
 
-## Project setup
+## Stack
 
-```bash
-$ npm install
+- NestJS
+- TypeScript
+- Prisma
+- PostgreSQL
+- JWT authentication
+- Stripe
+- Swagger
+- Jest
+
+## Main Dependencies
+
+- `@nestjs/common`
+- `@nestjs/core`
+- `@nestjs/jwt`
+- `@nestjs/passport`
+- `@prisma/client`
+- `prisma`
+- `passport-jwt`
+- `stripe`
+- `multer`
+- `jest`
+
+## Backend Role In The Product
+
+I use the backend to turn user actions into validated domain behavior.
+
+Examples:
+
+- a user can only access a workspace if they belong to it
+- only the right roles can manage members or create certain records
+- task edits and status changes are persisted consistently
+- billing state is synced through Stripe webhook handling
+- avatar uploads are stored and linked back to the user profile
+
+## Features
+
+### Core API Features
+
+- authentication and profile management
+- workspace, project, and task APIs
+- invitation handling
+- audit logging
+
+### Security And Access Features
+
+- JWT-protected endpoints
+- role-based membership enforcement
+- validated request DTOs
+- auth rate limiting
+
+### Billing Features
+
+- Stripe checkout session creation
+- customer portal session creation
+- invoice retrieval
+- webhook-based subscription synchronization
+
+## Backend Structure
+
+```text
+backend/
+├── prisma/
+│   ├── schema.prisma
+│   └── migrations/
+├── src/
+│   ├── auth/
+│   ├── audit-logs/
+│   ├── billing/
+│   ├── invitations/
+│   ├── prisma/
+│   ├── projects/
+│   ├── tasks/
+│   ├── workspaces/
+│   ├── app.module.ts
+│   ├── bootstrap.ts
+│   └── main.ts
+└── test/
 ```
 
-## Compile and run the project
+## How The Backend Is Organized
+
+I use a feature-based NestJS structure.
+
+Instead of keeping all controllers in one folder and all services in another, I gave each business area its own module. That keeps related code together and makes the system easier to scale.
+
+Typical feature contents:
+
+- `*.module.ts` wires the feature into Nest
+- `*.controller.ts` defines the HTTP routes
+- `*.service.ts` contains the business logic
+- `dto/` defines validated request shapes
+- `*.spec.ts` holds tests
+
+## Feature Guide
+
+### `src/auth/`
+
+Handles:
+
+- registration
+- login
+- current-user lookup
+- profile updates
+- avatar upload/remove
+- JWT protection and auth rate limiting
+
+Important routes:
+
+- `POST /api/auth/register`
+- `POST /api/auth/login`
+- `GET /api/auth/me`
+- `PATCH /api/auth/me`
+
+### `src/workspaces/`
+
+Handles:
+
+- workspace creation
+- workspace listing and retrieval
+- member add/update/remove
+- RBAC checks
+
+### `src/projects/`
+
+Handles:
+
+- project creation inside a workspace
+- project listing and lookup
+
+### `src/tasks/`
+
+Handles:
+
+- task creation
+- task detail edits
+- assignee updates
+- status movement
+- board/list retrieval
+
+### `src/invitations/`
+
+Handles:
+
+- invite creation
+- invitation listing
+- invitation acceptance
+
+### `src/audit-logs/`
+
+Handles:
+
+- recording important product events
+- exposing workspace activity history
+
+Examples of logged events:
+
+- workspace created
+- member added or role updated
+- billing session created
+- task updated
+
+### `src/billing/`
+
+Handles:
+
+- Stripe checkout sessions
+- Stripe customer portal sessions
+- invoice history retrieval
+- subscription synchronization from webhooks
+
+### `src/prisma/`
+
+I use this as the shared Prisma client/module across the backend.
+
+## Request Flow
+
+A typical request follows this path:
+
+1. controller receives the HTTP request
+2. DTO validation checks the incoming payload
+3. auth guards and role checks run
+4. service applies business logic
+5. Prisma reads or writes PostgreSQL data
+6. controller returns the response to the frontend
+
+That separation is intentional:
+
+- controllers stay thin
+- services hold the real logic
+- Prisma stays behind the service layer
+
+## How The Backend Connects To The Frontend
+
+The frontend uses this API for all live product data.
+
+Examples:
+
+- auth pages call backend auth endpoints
+- dashboard and workspace pages load workspaces, projects, tasks, and audit history
+- billing pages request checkout, portal, subscription, and invoices
+- account page uploads avatar files through multipart form-data
+
+## API Integration
+
+The Next.js frontend consumes the backend through REST endpoints under `/api`.
+
+Main integration patterns:
+
+- JSON requests for auth, workspaces, projects, tasks, invitations, audit logs, and billing reads
+- multipart form-data for profile avatar upload
+- webhook handling for Stripe subscription lifecycle events
+
+## Runtime Behavior
+
+- all API routes are prefixed with `/api`
+- Swagger is available at `/docs`
+- uploaded files are served from `/uploads/...`
+- global validation is enabled in the app bootstrap
+
+## Testing
+
+I included:
+
+- unit tests for key services and guards
+- end-to-end coverage for core flows
+
+Useful commands:
 
 ```bash
-# development
-$ npm run start
-
-# watch mode
-$ npm run start:dev
-
-# production mode
-$ npm run start:prod
+npm run build
+npm run test
+npm run test:e2e
+npm run prisma:studio
 ```
 
-## Run tests
+## Available Scripts
+
+- `npm run start:dev` start the backend in watch mode
+- `npm run build` compile the Nest app
+- `npm run test` run unit tests
+- `npm run test:e2e` run end-to-end tests
+- `npm run prisma:seed` populate repeatable demo data
+- `npm run prisma:studio` open Prisma Studio
+
+## Key Feature Implementation
+
+### Authentication
+
+- I use JWT auth with protected routes
+- I expose current-user lookup and profile update endpoints
+
+### Workspace RBAC
+
+- membership roles drive create, update, and remove permissions
+- services enforce access instead of relying on the frontend
+
+### Task Execution
+
+- task edits, assignment changes, and status movement are persisted through the task service layer
+
+### Billing
+
+- Stripe billing state is not just read from the frontend
+- I keep checkout creation, portal session creation, and webhook sync in the backend
+
+### Profile Avatars
+
+- profile updates accept multipart form-data
+- uploaded files are served back through backend static file handling
+
+## Running Locally
+
+If you want to run only the backend:
 
 ```bash
-# unit tests
-$ npm run test
-
-# e2e tests
-$ npm run test:e2e
-
-# test coverage
-$ npm run test:cov
+cd backend
+npm install
+cp ../.env.example .env
+npx prisma generate
+npx prisma migrate dev
+npm run prisma:seed
+npm run start:dev
 ```
 
-## Deployment
+The seed script is additive, so it is meant to create a stable demo baseline without wiping existing records first.
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
+## Local Storage And Schema Locations
 
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+- database schema: `prisma/schema.prisma`
+- migrations: `prisma/migrations/`
+- uploaded avatars: `uploads/avatars/`
 
-```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
-```
+## Deployment Notes
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
-
-## Resources
-
-Check out a few resources that may come in handy when working with NestJS:
-
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
-
-## Support
-
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
-
-## Stay in touch
-
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
-
-## License
-
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+- I would deploy this backend to Render using [Dockerfile](/Users/iangonsalves/Documents/Github/teamflow-saas-platform/backend/Dockerfile)
+- I would use Supabase for PostgreSQL and avatar storage
+- production envs should include `DATABASE_URL`, JWT secrets, Stripe values, `FRONTEND_URL`, `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, and `SUPABASE_STORAGE_BUCKET`
+- webhook endpoints must be publicly reachable in production

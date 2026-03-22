@@ -20,6 +20,7 @@ function subscribe(callback: () => void) {
 
 export function LandingAuthActions() {
   const router = useRouter();
+  // Keep the server snapshot stable and only read localStorage-backed auth on the client.
   const signedIn = useSyncExternalStore(subscribe, hasAuthSession, () => false);
   const userName = signedIn ? getStoredUser()?.name ?? null : null;
 
