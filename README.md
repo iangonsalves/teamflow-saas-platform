@@ -2,6 +2,14 @@
 
 I built TeamFlow as a full-stack SaaS workspace platform for teams that need structure across projects, tasks, memberships, billing, and account management.
 
+## Live Links
+
+- Live App: https://teamflow-saas-platform.vercel.app/
+- API: https://teamflow-saas-platform.onrender.com/api
+- API Docs: https://teamflow-saas-platform.onrender.com/docs
+
+The frontend is the main product link. The backend runs on Render free tier, so the first request can take a few seconds while the service wakes up.
+
 This repository is a monorepo containing:
 
 - a NestJS backend API
