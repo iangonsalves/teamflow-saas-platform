@@ -252,6 +252,7 @@ npm install
 cp ../.env.example .env
 npx prisma generate
 npx prisma migrate dev
+npm run prisma:seed
 npm run start:dev
 ```
 
@@ -277,6 +278,7 @@ npm run dev
 Common commands across the repo:
 
 - backend: `npm run start:dev`, `npm run build`, `npm run test`, `npm run test:e2e`
+- backend data: `npm run prisma:seed`
 - frontend: `npm run dev`, `npm run build`, `npm run lint`, `npm run start`
 
 ## Deployment Notes
