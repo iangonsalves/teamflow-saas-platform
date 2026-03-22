@@ -306,47 +306,7 @@ npm run start:dev
 
 ## Deployment Notes
 
-- for production, I would run PostgreSQL, uploaded assets, and Stripe on proper managed infrastructure
-- uploaded assets should move to object storage such as S3 or Cloudinary
-- webhook endpoints must be publicly reachable in production
-
-- membership roles drive create/update/remove permissions
-- services enforce access instead of relying on the frontend
-
-### Task Execution
-
-- task edits, assignment changes, and status movement are persisted through the task service layer
-
-### Billing
-
-- Stripe billing state is not just read from the frontend
-- backend owns checkout creation, portal session creation, and webhook sync
-
-### Profile Avatars
-
-- profile updates accept multipart form-data
-- uploaded files are served back through backend static file handling
-
-## Running Locally
-
-If you want to run only the backend:
-
-```bash
-cd backend
-npm install
-cp ../.env.example .env
-npx prisma generate
-npx prisma migrate dev
-npm run start:dev
-```
-
-## Local Storage And Schema Locations
-
-- database schema: `prisma/schema.prisma`
-- migrations: `prisma/migrations/`
-- uploaded avatars: `uploads/avatars/`
-
-## Deployment Notes
-
-- for production, I would run PostgreSQL, uploaded assets, and Stripe on proper managed infrastructure
+- I would deploy this backend to Render using [Dockerfile](/Users/iangonsalves/Documents/Github/teamflow-saas-platform/backend/Dockerfile)
+- I would use Supabase for PostgreSQL and avatar storage
+- production envs should include `DATABASE_URL`, JWT secrets, Stripe values, `FRONTEND_URL`, `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, and `SUPABASE_STORAGE_BUCKET`
 - webhook endpoints must be publicly reachable in production

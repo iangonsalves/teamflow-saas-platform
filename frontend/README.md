@@ -305,6 +305,8 @@ npm run start
 
 ## Deployment Notes
 
+- I would deploy this frontend to Vercel from the `frontend/` directory
 - in production, the frontend should point to a reachable deployed backend API URL
+- the main frontend production env is `NEXT_PUBLIC_API_URL`
 - I would pair authentication with a production-ready session strategy as the deployment model evolves
 - uploaded avatars are rendered from backend-served file URLs, so production hosting should pair the frontend with proper asset hosting on the backend side

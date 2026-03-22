@@ -281,9 +281,10 @@ Common commands across the repo:
 
 ## Deployment Notes
 
-- production deployment should use managed PostgreSQL, production Stripe credentials, and object storage for uploaded assets
-- the frontend should point to the deployed backend API and hosted asset URLs
-- the remaining close-out work after documentation is deployment, production-readiness, and demo/seed setup
+- I would deploy the frontend to Vercel, the backend API to Render, and use Supabase for PostgreSQL plus avatar storage
+- the backend can be deployed to Render from [backend/Dockerfile](/Users/iangonsalves/Documents/Github/teamflow-saas-platform/backend/Dockerfile)
+- the frontend should point to the deployed backend API through `NEXT_PUBLIC_API_URL`
+- backend production envs should include database, JWT, Stripe, frontend URL, and Supabase storage values
 
 ## Architecture Diagram
 
