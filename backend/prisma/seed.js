@@ -289,7 +289,7 @@ async function main() {
     workspaceId: dbSolutions.id,
     name: 'Sprint Launch',
     description: 'Coordinate launch planning across product and engineering',
-    createdBy: user2.id,
+    createdBy: userTwo.id,
   });
 
   const createSchemaTask = await ensureTask({
