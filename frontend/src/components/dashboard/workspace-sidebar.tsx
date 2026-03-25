@@ -200,7 +200,7 @@ export function WorkspaceSidebar({
         </div>
         <div className="mt-4 grid gap-3">
           <Link
-            className="tf-btn-secondary w-full border-white/12 bg-white text-slate-900 hover:border-white/18"
+            className="tf-btn-secondary w-full border-white/25 bg-white text-slate-900 hover:border-white/35"
             href="/settings/billing"
           >
             Open billing

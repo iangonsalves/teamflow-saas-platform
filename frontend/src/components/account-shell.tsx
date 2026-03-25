@@ -172,7 +172,7 @@ export function AccountShell() {
     return (
       <AppPageShell backHref="/dashboard" backLabel="Back to dashboard" maxWidth="5xl">
         <div className="space-y-6">
-          <div className="rounded-[2.25rem] border border-slate-200 bg-white p-6 shadow-md">
+          <div className="rounded-[2.25rem] border border-[#b99563] bg-[#fff1dc] p-6 shadow-[0_30px_84px_rgba(15,23,42,0.14)]">
             <Skeleton className="h-4 w-40 rounded-full" />
             <Skeleton className="mt-5 h-12 w-[min(24rem,72%)] rounded-2xl" />
           </div>
@@ -208,19 +208,19 @@ export function AccountShell() {
         eyebrow="TeamFlow Account"
         metrics={
           <div className="grid gap-4 md:grid-cols-3">
-            <div className="rounded-[1.5rem] border border-slate-200 bg-white p-4 shadow-sm">
+            <div className="rounded-[1.5rem] border border-[#cbb08a] bg-[#fffdfa] p-4 shadow-[0_12px_26px_rgba(15,23,42,0.08)]">
               <p className="font-mono text-[11px] uppercase tracking-[0.24em] text-slate-500">
                 Name
               </p>
               <p className="mt-3 text-lg font-semibold text-slate-900">{user?.name}</p>
             </div>
-            <div className="rounded-[1.5rem] border border-slate-200 bg-white p-4 shadow-sm">
+            <div className="rounded-[1.5rem] border border-[#cbb08a] bg-[#fffdfa] p-4 shadow-[0_12px_26px_rgba(15,23,42,0.08)]">
               <p className="font-mono text-[11px] uppercase tracking-[0.24em] text-slate-500">
                 Email
               </p>
               <p className="mt-3 truncate text-sm font-medium text-slate-900">{user?.email}</p>
             </div>
-            <div className="rounded-[1.5rem] border border-slate-200 bg-white p-4 shadow-sm">
+            <div className="rounded-[1.5rem] border border-[#cbb08a] bg-[#fffdfa] p-4 shadow-[0_12px_26px_rgba(15,23,42,0.08)]">
               <p className="font-mono text-[11px] uppercase tracking-[0.24em] text-slate-500">
                 Avatar
               </p>
@@ -234,11 +234,11 @@ export function AccountShell() {
       />
 
       <section className="mt-6 grid gap-6 lg:grid-cols-[280px_minmax(0,1fr)]">
-        <div className="rounded-[2rem] border border-slate-900/10 bg-white/82 p-6 shadow-[0_24px_70px_rgba(15,23,42,0.08)] backdrop-blur">
+        <div className="rounded-[2rem] border border-[#cfb793] bg-[#fffaf2] p-6 shadow-[0_24px_70px_rgba(15,23,42,0.12)]">
           <p className="font-mono text-xs uppercase tracking-[0.22em] text-slate-500">
             Preview
           </p>
-          <div className="mt-5 flex items-center gap-4 rounded-[1.6rem] border border-slate-200 bg-slate-50 p-4">
+          <div className="mt-5 flex items-center gap-4 rounded-[1.6rem] border border-[#d7c5aa] bg-[#f4ead9] p-4">
             {avatarPreviewUrl ? (
               /* eslint-disable-next-line @next/next/no-img-element */
               <img
@@ -259,7 +259,7 @@ export function AccountShell() {
         </div>
 
         <form
-          className="rounded-[2rem] border border-slate-900/10 bg-white/82 p-6 shadow-[0_24px_70px_rgba(15,23,42,0.08)] backdrop-blur"
+          className="rounded-[2rem] border border-[#cfb793] bg-[#fffaf2] p-6 shadow-[0_24px_70px_rgba(15,23,42,0.12)]"
           onSubmit={handleSave}
         >
           <p className="font-mono text-xs uppercase tracking-[0.22em] text-slate-500">
@@ -313,7 +313,7 @@ export function AccountShell() {
             <label className="block">
               <span className="mb-2 block text-sm font-medium text-slate-700">Email</span>
               <input
-                className="w-full rounded-2xl border border-slate-900/10 bg-slate-50 px-4 py-3 text-base text-slate-500 outline-none"
+                className="w-full rounded-2xl border border-slate-900/16 bg-[#f8f1e5] px-4 py-3 text-base text-slate-500 outline-none"
                 readOnly
                 value={user?.email ?? ""}
               />

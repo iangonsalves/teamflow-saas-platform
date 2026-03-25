@@ -34,7 +34,7 @@ export function LandingAuthActions() {
           Sign in
         </Link>
         <Link
-          className="inline-flex min-w-[180px] items-center justify-center rounded-full border border-blue-200 bg-blue-50 px-6 py-3 text-sm font-medium text-blue-700 transition hover:border-blue-300 hover:bg-blue-100"
+          className="inline-flex min-w-[180px] items-center justify-center rounded-full border-2 border-[#7da5fa] bg-[#f7faff] px-6 py-3 text-sm font-medium text-blue-700 shadow-[0_10px_24px_rgba(37,99,235,0.12)] transition hover:border-[#5b8ef0] hover:bg-[#edf4ff]"
           href="/dashboard"
         >
           View dashboard
@@ -52,7 +52,7 @@ export function LandingAuthActions() {
         {userName ? `Account: ${userName}` : "View account"}
       </Link>
       <button
-        className="inline-flex min-w-[180px] items-center justify-center rounded-full border border-slate-900/12 bg-white/80 px-6 py-3 text-sm font-medium text-slate-900 transition hover:border-slate-900/20 hover:bg-white"
+        className="tf-btn-secondary min-w-[180px]"
         onClick={() => {
           clearAuthSession();
           router.refresh();

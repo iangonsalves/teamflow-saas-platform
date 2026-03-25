@@ -228,12 +228,12 @@ export function BillingShell() {
     return (
       <AppPageShell maxWidth="5xl">
         <div className="space-y-6">
-          <div className="rounded-[2.25rem] border border-slate-200 bg-white p-6 shadow-md">
+          <div className="rounded-[2.25rem] border border-[#b99563] bg-[#fff1dc] p-6 shadow-[0_30px_84px_rgba(15,23,42,0.14)]">
             <Skeleton className="h-4 w-40 rounded-full" />
             <Skeleton className="mt-5 h-12 w-[min(24rem,72%)] rounded-2xl" />
             <div className="mt-6 grid gap-4 md:grid-cols-3">
               {Array.from({ length: 3 }).map((_, index) => (
-                <div className="rounded-[1.5rem] border border-slate-200 bg-slate-50 p-4" key={index}>
+                <div className="rounded-[1.5rem] border border-[#d7c5aa] bg-[#f4ead9] p-4" key={index}>
                   <Skeleton className="h-3 w-20 rounded-full" />
                   <Skeleton className="mt-4 h-8 w-16 rounded-xl" />
                   <Skeleton className="mt-3 h-3 w-28 rounded-full" />
@@ -302,7 +302,7 @@ export function BillingShell() {
         eyebrow="TeamFlow Billing"
         metrics={
           <div className="grid gap-4 md:grid-cols-3">
-                <div className="rounded-[1.5rem] border border-slate-200 bg-white p-4 shadow-sm">
+                <div className="rounded-[1.5rem] border border-[#cbb08a] bg-[#fffdfa] p-4 shadow-[0_12px_26px_rgba(15,23,42,0.08)]">
                   <p className="font-mono text-[11px] uppercase tracking-[0.24em] text-slate-500">
                     Workspace
                   </p>
@@ -313,7 +313,7 @@ export function BillingShell() {
                     Billing context for this page
                   </p>
                 </div>
-                <div className="rounded-[1.5rem] border border-slate-200 bg-white p-4 shadow-sm">
+                <div className="rounded-[1.5rem] border border-[#cbb08a] bg-[#fffdfa] p-4 shadow-[0_12px_26px_rgba(15,23,42,0.08)]">
                   <p className="font-mono text-[11px] uppercase tracking-[0.24em] text-slate-500">
                     Plan
                   </p>
@@ -324,7 +324,7 @@ export function BillingShell() {
                     Current subscription plan
                   </p>
                 </div>
-                <div className="rounded-[1.5rem] border border-blue-200 bg-white p-4 shadow-sm">
+                <div className="rounded-[1.5rem] border border-[#90b2fb] bg-[#f7faff] p-4 shadow-[0_12px_26px_rgba(37,99,235,0.08)]">
                   <p className="font-mono text-[11px] uppercase tracking-[0.24em] text-slate-500">
                     Invoices
                   </p>
@@ -358,7 +358,7 @@ export function BillingShell() {
         ) : null}
 
         <section className="mt-6 grid gap-6 lg:grid-cols-[0.9fr_1.1fr]">
-          <div className="rounded-[2.1rem] border border-slate-900/10 bg-white/82 p-6 shadow-[0_24px_70px_rgba(15,23,42,0.08)] backdrop-blur">
+          <div className="rounded-[2.1rem] border border-[#cfb793] bg-[#fffaf2] p-6 shadow-[0_24px_70px_rgba(15,23,42,0.12)]">
             <div className="flex items-start justify-between gap-4">
               <div>
                 <p className="font-mono text-xs uppercase tracking-[0.22em] text-slate-500">
@@ -402,7 +402,7 @@ export function BillingShell() {
           <div className="grid gap-4">
             {plans.map((plan) => (
               <div
-                className="rounded-[2.1rem] border border-slate-900/10 bg-white/82 p-6 shadow-[0_24px_70px_rgba(15,23,42,0.08)] backdrop-blur"
+                className="rounded-[2.1rem] border border-[#cfb793] bg-[#fffaf2] p-6 shadow-[0_24px_70px_rgba(15,23,42,0.12)]"
                 key={plan.id}
               >
                 <p className="font-mono text-xs uppercase tracking-[0.22em] text-slate-500">
@@ -427,7 +427,7 @@ export function BillingShell() {
           </div>
         </section>
 
-        <section className="mt-6 rounded-[2.1rem] border border-slate-900/10 bg-white/82 p-6 shadow-[0_24px_70px_rgba(15,23,42,0.08)] backdrop-blur">
+        <section className="mt-6 rounded-[2.1rem] border border-[#cfb793] bg-[#fffaf2] p-6 shadow-[0_24px_70px_rgba(15,23,42,0.12)]">
           <div className="flex items-center justify-between gap-4">
             <div>
               <p className="font-mono text-xs uppercase tracking-[0.22em] text-slate-500">
@@ -443,7 +443,7 @@ export function BillingShell() {
             {invoices.length > 0 ? (
               invoices.map((invoice) => (
                 <div
-                  className="flex flex-col gap-4 rounded-[1.5rem] border border-slate-900/10 bg-white p-4 sm:flex-row sm:items-center sm:justify-between"
+                  className="flex flex-col gap-4 rounded-[1.5rem] border border-[#cbb08a] bg-[#fffdfa] p-4 sm:flex-row sm:items-center sm:justify-between"
                   key={invoice.id}
                 >
                   <div>
@@ -458,7 +458,7 @@ export function BillingShell() {
                   <div className="flex gap-3">
                     {invoice.hostedInvoiceUrl ? (
                       <a
-                        className="inline-flex items-center justify-center rounded-full border border-slate-900/10 bg-white px-4 py-2 text-sm font-medium text-slate-900 no-underline transition hover:bg-slate-50"
+                        className="inline-flex items-center justify-center rounded-full border-2 border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-900 no-underline transition hover:border-slate-400 hover:bg-slate-50"
                         href={invoice.hostedInvoiceUrl}
                         rel="noreferrer"
                         target="_blank"

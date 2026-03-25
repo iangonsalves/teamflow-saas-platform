@@ -78,7 +78,7 @@ export function AuthForm({ mode }: AuthFormProps) {
             Name
           </span>
           <input
-            className="w-full rounded-2xl border border-slate-900/10 bg-white px-4 py-3 text-base text-slate-900 outline-none transition focus:border-slate-900/30"
+            className="w-full rounded-2xl border border-slate-900/16 bg-white px-4 py-3 text-base text-slate-900 outline-none transition focus:border-slate-900/34"
             name="name"
             value={name}
             onChange={(event) => setName(event.target.value)}
@@ -93,7 +93,7 @@ export function AuthForm({ mode }: AuthFormProps) {
           Email
         </span>
         <input
-          className="w-full rounded-2xl border border-slate-900/10 bg-white px-4 py-3 text-base text-slate-900 outline-none transition focus:border-slate-900/30"
+          className="w-full rounded-2xl border border-slate-900/16 bg-white px-4 py-3 text-base text-slate-900 outline-none transition focus:border-slate-900/34"
           name="email"
           type="email"
           value={email}
@@ -108,7 +108,7 @@ export function AuthForm({ mode }: AuthFormProps) {
           Password
         </span>
         <input
-          className="w-full rounded-2xl border border-slate-900/10 bg-white px-4 py-3 text-base text-slate-900 outline-none transition focus:border-slate-900/30"
+          className="w-full rounded-2xl border border-slate-900/16 bg-white px-4 py-3 text-base text-slate-900 outline-none transition focus:border-slate-900/34"
           name="password"
           type="password"
           value={password}
@@ -141,7 +141,7 @@ export function AuthForm({ mode }: AuthFormProps) {
         )}
       </button>
 
-      <div className="rounded-[1.5rem] border border-slate-900/10 bg-[#f8f2e6] px-4 py-4 text-sm text-slate-600">
+      <div className="rounded-[1.5rem] border border-[#cbb08a] bg-[#efddbe] px-4 py-4 text-sm text-slate-600">
         <p>
         {isRegister ? "Already have an account? " : "Need an account? "}
         <Link

@@ -401,14 +401,14 @@ export function ProjectDetailShell({ projectId }: ProjectDetailShellProps) {
 
   if (loading) {
     return (
-      <main className="min-h-screen bg-[radial-gradient(circle_at_top_left,_rgba(42,157,143,0.14),_transparent_24%),radial-gradient(circle_at_bottom_right,_rgba(244,162,97,0.14),_transparent_30%),linear-gradient(180deg,_#f8f3ea_0%,_#efe4d3_100%)] px-6 py-8 text-slate-900 sm:px-8">
+      <main className="min-h-screen bg-[radial-gradient(circle_at_top_left,_rgba(42,157,143,0.14),_transparent_24%),radial-gradient(circle_at_bottom_right,_rgba(244,162,97,0.14),_transparent_30%),linear-gradient(180deg,_#eddcbf_0%,_#dcc39a_100%)] px-6 py-8 text-slate-900 sm:px-8">
         <div className="mx-auto max-w-7xl space-y-6">
-          <div className="rounded-[2.25rem] border border-slate-200 bg-white p-6 shadow-md">
+          <div className="rounded-[2.25rem] border border-[#b99563] bg-[#fff1dc] p-6 shadow-[0_30px_84px_rgba(15,23,42,0.14)]">
             <Skeleton className="h-4 w-32 rounded-full" />
             <Skeleton className="mt-5 h-12 w-[min(26rem,78%)] rounded-2xl" />
             <div className="mt-6 grid gap-4 md:grid-cols-4">
               {Array.from({ length: 4 }).map((_, index) => (
-                <div className="rounded-[1.5rem] border border-slate-200 bg-slate-50 p-4" key={index}>
+                <div className="rounded-[1.5rem] border border-[#d7c5aa] bg-[#f4ead9] p-4" key={index}>
                   <Skeleton className="h-3 w-20 rounded-full" />
                   <Skeleton className="mt-4 h-8 w-16 rounded-xl" />
                   <Skeleton className="mt-3 h-3 w-28 rounded-full" />
@@ -454,7 +454,7 @@ export function ProjectDetailShell({ projectId }: ProjectDetailShellProps) {
                   </Link>
                 ) : null}
                 <button
-                  className="tf-btn-secondary border-white/15 bg-white text-slate-900 hover:border-white/20"
+                  className="tf-btn-secondary border-white/25 bg-white text-slate-900 hover:border-white/35"
                   onClick={handleLogout}
                   type="button"
                 >
@@ -467,7 +467,7 @@ export function ProjectDetailShell({ projectId }: ProjectDetailShellProps) {
           eyebrow="Project detail"
           metrics={
             <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
-                <div className="rounded-[1.5rem] border border-slate-200 bg-white p-4 shadow-sm">
+                <div className="rounded-[1.5rem] border border-[#b58e5f] bg-[#fff1dc] p-4 shadow-[0_16px_32px_rgba(15,23,42,0.10)]">
                   <p className="font-mono text-[11px] uppercase tracking-[0.24em] text-slate-500">
                     Workspace
                   </p>
@@ -476,28 +476,28 @@ export function ProjectDetailShell({ projectId }: ProjectDetailShellProps) {
                   </p>
                   <p className="mt-1 text-sm text-slate-600">Operational context</p>
                 </div>
-                <div className="rounded-[1.5rem] border border-slate-200 bg-white p-4 shadow-sm">
+                <div className="rounded-[1.5rem] border border-[#b58e5f] bg-[#fff1dc] p-4 shadow-[0_16px_32px_rgba(15,23,42,0.10)]">
                   <p className="font-mono text-[11px] uppercase tracking-[0.24em] text-slate-500">
                     Todo
                   </p>
                   <p className="mt-3 text-3xl font-semibold text-slate-900">{todoCount}</p>
                   <p className="mt-1 text-sm text-slate-600">Ready to be pulled</p>
                 </div>
-                <div className="rounded-[1.5rem] border border-slate-200 bg-white p-4 shadow-sm">
+                <div className="rounded-[1.5rem] border border-[#b58e5f] bg-[#fff1dc] p-4 shadow-[0_16px_32px_rgba(15,23,42,0.10)]">
                   <p className="font-mono text-[11px] uppercase tracking-[0.24em] text-slate-500">
                     In progress
                   </p>
                   <p className="mt-3 text-3xl font-semibold text-slate-900">{inProgressCount}</p>
                   <p className="mt-1 text-sm text-slate-600">Currently moving</p>
                 </div>
-                <div className="rounded-[1.5rem] border border-slate-200 bg-white p-4 shadow-sm">
+                <div className="rounded-[1.5rem] border border-[#b58e5f] bg-[#fff1dc] p-4 shadow-[0_16px_32px_rgba(15,23,42,0.10)]">
                   <p className="font-mono text-[11px] uppercase tracking-[0.24em] text-slate-500">
                     Done
                   </p>
                   <p className="mt-3 text-3xl font-semibold text-slate-900">{doneCount}</p>
                   <p className="mt-1 text-sm text-slate-600">Finished cards</p>
                 </div>
-                <div className="rounded-[1.5rem] border border-blue-200 bg-white p-4 shadow-sm">
+                <div className="rounded-[1.5rem] border border-[#79ae9e] bg-[#cfe6df] p-4 shadow-[0_16px_32px_rgba(42,157,143,0.10)]">
                   <p className="font-mono text-[11px] uppercase tracking-[0.24em] text-slate-500">
                     Delivery progress
                   </p>
@@ -520,7 +520,7 @@ export function ProjectDetailShell({ projectId }: ProjectDetailShellProps) {
 
         <section className="mt-6 grid gap-6 xl:grid-cols-[240px_minmax(0,1fr)]">
           <aside className="space-y-6 xl:sticky xl:top-8 xl:self-start">
-            <section className="rounded-[2rem] border border-slate-900/10 bg-white/78 p-5 shadow-[0_24px_70px_rgba(15,23,42,0.08)] backdrop-blur">
+            <section className="rounded-[2rem] border border-[#b99563] bg-[#fff1dc] p-5 shadow-[0_26px_76px_rgba(15,23,42,0.14)]">
               <p className="font-mono text-xs uppercase tracking-[0.22em] text-slate-500">
                 Project rail
               </p>
@@ -533,15 +533,21 @@ export function ProjectDetailShell({ projectId }: ProjectDetailShellProps) {
                     className={`rounded-[1.25rem] border px-4 py-4 text-sm no-underline transition ${
                       project.id === projectId
                         ? "border-slate-900 bg-slate-900 text-white shadow-[0_14px_34px_rgba(15,23,42,0.18)]"
-                        : "border-slate-900/10 bg-[#fffdfa] text-slate-900 hover:border-slate-900/25"
+                        : "border-[#b58e5f] bg-[#fff1dc] text-slate-900 hover:border-[#9f7a4f]"
                     }`}
                     href={`/projects/${project.id}?workspaceId=${resolvedWorkspaceId}`}
                     key={project.id}
                   >
-                    <p className="font-semibold">{project.name}</p>
+                    <p
+                      className={`font-semibold ${
+                        project.id === projectId ? "text-white" : "text-slate-900"
+                      }`}
+                    >
+                      {project.name}
+                    </p>
                     <p
                       className={`mt-1 text-xs ${
-                        project.id === projectId ? "text-slate-300" : "text-slate-500"
+                        project.id === projectId ? "text-slate-100" : "text-slate-500"
                       }`}
                     >
                       {project.description || "No description yet."}

@@ -24,12 +24,12 @@ export function DashboardHeader({
   onLogout,
 }: DashboardHeaderProps) {
   return (
-    <header className="rounded-[2.15rem] border border-slate-200 bg-white p-5 shadow-[0_24px_70px_rgba(15,23,42,0.08)]">
+    <header className="rounded-[2.15rem] border border-[#b99563] bg-[#e7ca98] p-5 shadow-[0_28px_84px_rgba(15,23,42,0.14)]">
       <div className="grid gap-5 xl:grid-cols-[minmax(0,1.12fr)_332px]">
-        <div className="tf-hero rounded-[1.9rem] p-5 shadow-sm">
+        <div className="rounded-[1.9rem] border border-[#b58e5f] bg-[#e8c892] p-5 shadow-[0_20px_48px_rgba(15,23,42,0.12)]">
           <div className="flex items-center justify-between gap-4">
             <p className="tf-brand-chip">TeamFlow Operations</p>
-            <span className="rounded-full border border-slate-200 bg-white/90 px-3 py-1 font-mono text-[11px] uppercase tracking-[0.22em] text-slate-500">
+            <span className="rounded-full border-2 border-[#c7ab85] bg-[#fffaf2] px-3 py-1 font-mono text-[11px] uppercase tracking-[0.22em] text-slate-500">
               Live overview
             </span>
           </div>
@@ -41,7 +41,7 @@ export function DashboardHeader({
             movement, and jump into workspace or project pages only when you need to act.
           </p>
           <div className="mt-5 grid gap-3 md:grid-cols-2 2xl:grid-cols-4">
-            <div className="min-w-0 rounded-[1.35rem] border border-slate-200 bg-white p-4 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg">
+            <div className="min-w-0 rounded-[1.35rem] border border-[#b58e5f] bg-[#fff1dc] p-4 shadow-[0_16px_32px_rgba(15,23,42,0.10)] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg">
               <p className="font-mono text-[11px] uppercase tracking-[0.24em] text-slate-500">
                 Active workspace
               </p>
@@ -52,7 +52,7 @@ export function DashboardHeader({
                 {formatRole(selectedWorkspaceRole)}
               </p>
             </div>
-            <div className="min-w-0 rounded-[1.35rem] border border-slate-200 bg-white p-4 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg">
+            <div className="min-w-0 rounded-[1.35rem] border border-[#aeb9d1] bg-[#fffdf7] p-4 shadow-[0_16px_32px_rgba(15,23,42,0.10)] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg">
               <p className="font-mono text-[11px] uppercase tracking-[0.24em] text-slate-500">
                 Projects
               </p>
@@ -61,14 +61,14 @@ export function DashboardHeader({
                 Delivery lanes in the selected workspace
               </p>
             </div>
-            <div className="min-w-0 rounded-[1.35rem] border border-slate-200 bg-white p-4 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg">
+            <div className="min-w-0 rounded-[1.35rem] border border-[#aeb9d1] bg-[#fffdf7] p-4 shadow-[0_16px_32px_rgba(15,23,42,0.10)] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg">
               <p className="font-mono text-[11px] uppercase tracking-[0.24em] text-slate-500">
                 Tasks
               </p>
               <p className="mt-3 text-3xl font-semibold text-slate-900">{taskCount}</p>
               <p className="mt-1 text-sm text-slate-600">{activeTaskCount} still in motion</p>
             </div>
-            <div className="min-w-0 rounded-[1.35rem] border border-slate-200 bg-white p-4 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg">
+            <div className="min-w-0 rounded-[1.35rem] border border-[#79ae9e] bg-[#cfe6df] p-4 shadow-[0_16px_32px_rgba(42,157,143,0.12)] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg">
               <p className="font-mono text-[11px] uppercase tracking-[0.24em] text-slate-500">
                 Team
               </p>
@@ -96,7 +96,7 @@ export function DashboardHeader({
               className="tf-btn-ghost"
               href="/"
             >
-              Landing page
+              Home page
             </Link>
             <Link
               className="tf-btn-ghost"
@@ -105,7 +105,7 @@ export function DashboardHeader({
               Billing
             </Link>
             <button
-              className="tf-btn-secondary border-white/15 bg-white text-slate-900 hover:border-white/20"
+              className="tf-btn-secondary border-white/25 bg-white text-slate-900 hover:border-white/35"
               onClick={onLogout}
               type="button"
             >
