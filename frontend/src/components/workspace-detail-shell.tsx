@@ -352,14 +352,14 @@ export function WorkspaceDetailShell({
 
   if (workspaceLoading && !workspace) {
     return (
-      <main className="min-h-screen bg-[radial-gradient(circle_at_top_left,_rgba(33,158,188,0.14),_transparent_28%),radial-gradient(circle_at_bottom_right,_rgba(244,162,97,0.18),_transparent_30%),linear-gradient(180deg,_#f8f3ea_0%,_#efe4d3_100%)] px-6 py-8 text-slate-900 sm:px-8">
+      <main className="min-h-screen bg-[radial-gradient(circle_at_top_left,_rgba(33,158,188,0.14),_transparent_28%),radial-gradient(circle_at_bottom_right,_rgba(244,162,97,0.18),_transparent_30%),linear-gradient(180deg,_#eddcbf_0%,_#dcc39a_100%)] px-6 py-8 text-slate-900 sm:px-8">
         <div className="mx-auto max-w-7xl space-y-6">
-          <div className="rounded-[2.25rem] border border-slate-200 bg-white p-6 shadow-md">
+          <div className="rounded-[2.25rem] border border-[#b99563] bg-[#fff1dc] p-6 shadow-[0_30px_84px_rgba(15,23,42,0.14)]">
             <Skeleton className="h-4 w-36 rounded-full" />
             <Skeleton className="mt-5 h-12 w-[min(28rem,80%)] rounded-2xl" />
             <div className="mt-6 grid gap-4 md:grid-cols-4">
               {Array.from({ length: 4 }).map((_, index) => (
-                <div className="rounded-[1.5rem] border border-slate-200 bg-slate-50 p-4" key={index}>
+                <div className="rounded-[1.5rem] border border-[#d7c5aa] bg-[#f4ead9] p-4" key={index}>
                   <Skeleton className="h-3 w-20 rounded-full" />
                   <Skeleton className="mt-4 h-8 w-16 rounded-xl" />
                   <Skeleton className="mt-3 h-3 w-28 rounded-full" />
@@ -407,7 +407,7 @@ export function WorkspaceDetailShell({
                   </Link>
                 ) : null}
                 <button
-                  className="tf-btn-secondary border-white/15 bg-white text-slate-900 hover:border-white/20"
+                  className="tf-btn-secondary border-white/25 bg-white text-slate-900 hover:border-white/35"
                   onClick={handleLogout}
                   type="button"
                 >
@@ -420,7 +420,7 @@ export function WorkspaceDetailShell({
           eyebrow="Workspace detail"
           metrics={
             <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
-                <div className="rounded-[1.5rem] border border-slate-200 bg-white p-4 shadow-sm">
+                <div className="rounded-[1.5rem] border border-[#b58e5f] bg-[#fff1dc] p-4 shadow-[0_16px_32px_rgba(15,23,42,0.10)]">
                   <p className="font-mono text-[11px] uppercase tracking-[0.24em] text-slate-500">
                     Role
                   </p>
@@ -429,28 +429,28 @@ export function WorkspaceDetailShell({
                   </p>
                   <p className="mt-1 text-sm text-slate-600">Your access level here</p>
                 </div>
-                <div className="rounded-[1.5rem] border border-slate-200 bg-white p-4 shadow-sm">
+                <div className="rounded-[1.5rem] border border-[#b58e5f] bg-[#fff1dc] p-4 shadow-[0_16px_32px_rgba(15,23,42,0.10)]">
                   <p className="font-mono text-[11px] uppercase tracking-[0.24em] text-slate-500">
                     Members
                   </p>
                   <p className="mt-3 text-3xl font-semibold text-slate-900">{workspaceMembers.length}</p>
                   <p className="mt-1 text-sm text-slate-600">People in this team</p>
                 </div>
-                <div className="rounded-[1.5rem] border border-slate-200 bg-white p-4 shadow-sm">
+                <div className="rounded-[1.5rem] border border-[#b58e5f] bg-[#fff1dc] p-4 shadow-[0_16px_32px_rgba(15,23,42,0.10)]">
                   <p className="font-mono text-[11px] uppercase tracking-[0.24em] text-slate-500">
                     Admins
                   </p>
                   <p className="mt-3 text-3xl font-semibold text-slate-900">{adminCount}</p>
                   <p className="mt-1 text-sm text-slate-600">Operational leads</p>
                 </div>
-                <div className="rounded-[1.5rem] border border-slate-200 bg-white p-4 shadow-sm">
+                <div className="rounded-[1.5rem] border border-[#b58e5f] bg-[#fff1dc] p-4 shadow-[0_16px_32px_rgba(15,23,42,0.10)]">
                   <p className="font-mono text-[11px] uppercase tracking-[0.24em] text-slate-500">
                     Projects
                   </p>
                   <p className="mt-3 text-3xl font-semibold text-slate-900">{projects.length}</p>
                   <p className="mt-1 text-sm text-slate-600">Delivery lanes in motion</p>
                 </div>
-                <div className="rounded-[1.5rem] border border-blue-200 bg-white p-4 shadow-sm">
+                <div className="rounded-[1.5rem] border border-[#79ae9e] bg-[#cfe6df] p-4 shadow-[0_16px_32px_rgba(42,157,143,0.10)]">
                   <p className="font-mono text-[11px] uppercase tracking-[0.24em] text-slate-500">
                     Workspace health
                   </p>

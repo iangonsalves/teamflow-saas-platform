@@ -41,7 +41,7 @@ export function WorkspaceProjectsPanel({
   }, [projectActionMessage, showToast]);
 
   return (
-    <section className="rounded-[2.15rem] border border-slate-200 bg-white p-6 shadow-md">
+    <section className="rounded-[2.15rem] border border-[#b99563] bg-[#fff1dc] p-6 shadow-[0_26px_76px_rgba(15,23,42,0.14)]">
       <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
         <div>
           <p className="font-mono text-xs uppercase tracking-[0.22em] text-slate-500">
@@ -54,7 +54,7 @@ export function WorkspaceProjectsPanel({
             This is the planning surface for the workspace. Open any project to move into its dedicated board.
           </p>
         </div>
-        <div className="rounded-full border border-blue-200 bg-blue-50 px-4 py-2 text-sm text-blue-700">
+        <div className="rounded-full border border-[#9db7db] bg-[#e6eefc] px-4 py-2 text-sm text-[#315f9f]">
           {projects.length} active {projects.length === 1 ? "project" : "projects"}
         </div>
       </div>
@@ -64,7 +64,7 @@ export function WorkspaceProjectsPanel({
           {projects.length > 0 ? (
             projects.map((project) => (
               <Link
-                className="rounded-[1.65rem] border border-slate-200 bg-slate-50 p-5 text-left no-underline transition-all duration-200 hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-lg"
+                className="rounded-[1.65rem] border border-[#b8c6dc] bg-[#edf2fb] p-5 text-left no-underline transition-all duration-200 hover:-translate-y-0.5 hover:border-[#98afcf] hover:shadow-lg"
                 href={`/projects/${project.id}?workspaceId=${workspaceId}`}
                 key={project.id}
               >
@@ -94,7 +94,7 @@ export function WorkspaceProjectsPanel({
         </div>
 
         <form
-          className="rounded-[1.85rem] border border-slate-200 bg-slate-50 p-5 shadow-sm"
+          className="rounded-[1.85rem] border border-[#b8c6dc] bg-[#edf2fb] p-5 shadow-[0_18px_44px_rgba(15,23,42,0.08)]"
           onSubmit={onCreateProject}
         >
           <p className="font-mono text-xs uppercase tracking-[0.22em] text-slate-500">
@@ -104,7 +104,7 @@ export function WorkspaceProjectsPanel({
             Create a fresh delivery lane without leaving this workspace.
           </p>
           <input
-            className="mt-4 w-full rounded-2xl border border-slate-900/10 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-slate-900/30"
+            className="mt-4 w-full rounded-2xl border border-[#b8c6dc] bg-[#fffdfa] px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-[#8da3c4]"
             disabled={!canManageWorkspace || submittingProject}
             onChange={(event) => onProjectNameChange(event.target.value)}
             placeholder="Sprint launch"
@@ -112,7 +112,7 @@ export function WorkspaceProjectsPanel({
             value={projectName}
           />
           <textarea
-            className="mt-3 min-h-28 w-full rounded-2xl border border-slate-900/10 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-slate-900/30"
+            className="mt-3 min-h-28 w-full rounded-2xl border border-[#b8c6dc] bg-[#fffdfa] px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-[#8da3c4]"
             disabled={!canManageWorkspace || submittingProject}
             onChange={(event) => onProjectDescriptionChange(event.target.value)}
             placeholder="What is this project responsible for?"

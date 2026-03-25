@@ -43,7 +43,7 @@ export function WorkspaceMembersPanel({
   }, [actionMessage, showToast]);
 
   return (
-    <section className="rounded-[2.15rem] border border-slate-200 bg-white p-6 shadow-md">
+    <section className="rounded-[2.15rem] border border-[#b99563] bg-[#fff1dc] p-6 shadow-[0_26px_76px_rgba(15,23,42,0.14)]">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
         <div>
           <p className="font-mono text-xs uppercase tracking-[0.22em] text-slate-500">
@@ -71,7 +71,7 @@ export function WorkspaceMembersPanel({
       <div className="mt-5 grid gap-3">
         {members.length > 0 ? (
           members.map((member) => (
-            <div className="rounded-[1.6rem] border border-slate-200 bg-slate-50 p-4 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg" key={member.id}>
+            <div className="rounded-[1.6rem] border border-[#d6c1a2] bg-[#f8efe2] p-4 shadow-[0_14px_28px_rgba(15,23,42,0.08)] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg" key={member.id}>
               <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
                 <div className="min-w-0">
                   <div className="flex flex-wrap items-center gap-2">
@@ -87,7 +87,7 @@ export function WorkspaceMembersPanel({
                 {canManageWorkspace ? (
                   <div className="grid w-full gap-2 sm:w-auto sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
                     <select
-                      className="min-w-0 rounded-full border border-slate-900/10 bg-white px-3 py-2 text-[11px] font-medium uppercase tracking-[0.18em] text-slate-700 outline-none transition focus:border-slate-900/30"
+                      className="min-w-0 rounded-full border border-[#cdb89a] bg-[#fffdfa] px-3 py-2 text-[11px] font-medium uppercase tracking-[0.18em] text-slate-700 outline-none transition focus:border-[#9f7a4f]"
                       onChange={(event) =>
                         onUpdateWorkspaceMemberRole(
                           member.user.id,
@@ -133,7 +133,7 @@ export function WorkspaceMembersPanel({
 
       {canManageWorkspace ? (
         <form
-          className="mt-6 rounded-[2rem] border border-slate-200 bg-slate-50 p-5 shadow-sm"
+          className="mt-6 rounded-[2rem] border border-[#d6c1a2] bg-[#f8efe2] p-5 shadow-[0_18px_44px_rgba(15,23,42,0.08)]"
           onSubmit={handleAddMember}
         >
           <div className="flex items-end justify-between gap-4">
@@ -149,7 +149,7 @@ export function WorkspaceMembersPanel({
           <div className="mt-4 grid gap-3">
             <div className="grid gap-3 md:grid-cols-[minmax(0,1fr)_180px]">
               <input
-                className="min-w-0 rounded-2xl border border-slate-900/10 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-slate-900/30"
+                className="min-w-0 rounded-2xl border border-[#cdb89a] bg-[#fffdfa] px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-[#9f7a4f]"
                 onChange={(event) => setMemberEmail(event.target.value)}
                 placeholder="teammate@example.com"
                 required
@@ -157,7 +157,7 @@ export function WorkspaceMembersPanel({
                 value={memberEmail}
               />
               <select
-                className="min-w-0 rounded-2xl border border-slate-900/10 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-slate-900/30"
+                className="min-w-0 rounded-2xl border border-[#cdb89a] bg-[#fffdfa] px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-[#9f7a4f]"
                 onChange={(event) => setMemberRole(event.target.value as WorkspaceRole)}
                 value={memberRole}
               >

@@ -93,29 +93,34 @@ teamflow-saas-platform/
 
 ## Product Showcase
 
-### Landing Page
+### Home Page
 
-![TeamFlow landing page](docs/images/landing_page.png)
-Landing page introduces the product, shows signed-in or signed-out actions, and routes users into the main app flow.
+![TeamFlow Home page](docs/images/home_page.png)
+
+Home page introduces the product, shows signed-in or signed-out actions, and routes users into the main app flow.
 
 ### Dashboard Overview
 
 ![TeamFlow dashboard overview](docs/images/dashboard.png)
+
 Dashboard overview acts as the orientation surface for workspaces, recent movement, and high-level operational context.
 
 ### Workspace Management
 
 ![TeamFlow workspace page](docs/images/workspace.png)
+
 Workspace page brings together members, invitations, and project creation without overloading the overview screen.
 
 ### Project Board
 
 ![TeamFlow project detail page](docs/images/project_detail.png)
+
 Project board is the main execution surface for creating tasks, assigning work, and moving cards across delivery lanes.
 
 ### Billing
 
 ![TeamFlow billing page](docs/images/billing_page.png)
+
 Billing page keeps subscription state, checkout, customer portal access, and invoice history inside the product surface.
 
 ## Features

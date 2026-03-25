@@ -27,7 +27,7 @@ export function AppPageShell({
 
   return (
     <main
-      className={`min-h-screen bg-[radial-gradient(circle_at_top_left,_rgba(42,157,143,0.14),_transparent_24%),radial-gradient(circle_at_bottom_right,_rgba(244,162,97,0.14),_transparent_30%),linear-gradient(180deg,_#f8f3ea_0%,_#efe4d3_100%)] px-6 py-8 text-slate-900 sm:px-8 ${className ?? ""}`}
+      className={`min-h-screen bg-[radial-gradient(circle_at_top_left,_rgba(42,157,143,0.14),_transparent_22%),radial-gradient(circle_at_bottom_right,_rgba(244,162,97,0.14),_transparent_26%),linear-gradient(180deg,_#eddcbf_0%,_#dcc39a_100%)] px-6 py-8 text-slate-900 sm:px-8 ${className ?? ""}`}
     >
       <section className={`mx-auto ${widthClass}`}>
         {backHref && backLabel ? (

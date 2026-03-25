@@ -139,7 +139,7 @@ export function InvitationsPanel({
   }, [canManage, token, workspaceId]);
 
   return (
-    <section className="rounded-[2.15rem] border border-slate-200 bg-white p-6 shadow-md">
+    <section className="rounded-[2.15rem] border border-[#b8c6dc] bg-[#eef2f8] p-6 shadow-[0_26px_76px_rgba(15,23,42,0.14)]">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         <div>
           <p className="font-mono text-xs uppercase tracking-[0.22em] text-slate-500">
@@ -164,13 +164,13 @@ export function InvitationsPanel({
 
       {canManage ? (
         <form
-          className="mt-5 rounded-[1.8rem] border border-slate-200 bg-slate-50 p-4 shadow-sm"
+          className="mt-5 rounded-[1.8rem] border border-[#c5d0df] bg-[#f4f7fc] p-4 shadow-[0_18px_44px_rgba(15,23,42,0.08)]"
           onSubmit={handleCreateInvitation}
         >
           <div className="grid gap-3">
             <div className="grid gap-3 md:grid-cols-[minmax(0,1fr)_180px]">
               <input
-                className="min-w-0 rounded-2xl border border-slate-900/10 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-slate-900/30"
+                className="min-w-0 rounded-2xl border border-[#b8c6dc] bg-[#fffdfa] px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-[#8da3c4]"
                 onChange={(event) => setEmail(event.target.value)}
                 placeholder="invitee@example.com"
                 required
@@ -178,7 +178,7 @@ export function InvitationsPanel({
                 value={email}
               />
               <select
-                className="min-w-0 rounded-2xl border border-slate-900/10 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-slate-900/30"
+                className="min-w-0 rounded-2xl border border-[#b8c6dc] bg-[#fffdfa] px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-[#8da3c4]"
                 onChange={(event) => setRole(event.target.value)}
                 value={role}
               >
@@ -225,7 +225,7 @@ export function InvitationsPanel({
       <div className="mt-5 grid gap-3">
         {invitations.length > 0 ? (
           invitations.map((invitation) => (
-            <div className="rounded-[1.5rem] border border-slate-200 bg-slate-50 p-4 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg" key={invitation.id}>
+            <div className="rounded-[1.5rem] border border-[#c5d0df] bg-[#f4f7fc] p-4 shadow-[0_14px_28px_rgba(15,23,42,0.08)] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg" key={invitation.id}>
               <div className="flex items-center justify-between gap-4">
                 <div>
                   <p className="text-sm font-semibold text-slate-900">
