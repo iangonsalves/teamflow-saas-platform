@@ -442,7 +442,14 @@ export function ProjectDetailShell({ projectId }: ProjectDetailShellProps) {
                 Team size: {workspaceMembers.length}. Your role: {selectedWorkspaceRole ?? "MEMBER"}.
               </p>
               <div className="mt-6 grid gap-3">
-                <Link className="tf-btn-ghost" href="/settings/billing">
+                <Link
+                  className="tf-btn-ghost"
+                  href={
+                    resolvedWorkspaceId
+                      ? `/settings/billing?workspaceId=${resolvedWorkspaceId}`
+                      : "/settings/billing"
+                  }
+                >
                   Billing
                 </Link>
                 {resolvedWorkspaceId ? (

@@ -5,6 +5,7 @@ import { formatRole } from "./utils";
 type DashboardHeaderProps = {
   user: AuthUser | null;
   activeWorkspaceName: string | null;
+  selectedWorkspaceId: string | null;
   selectedWorkspaceRole: "OWNER" | "ADMIN" | "MEMBER" | null;
   projectCount: number;
   taskCount: number;
@@ -16,6 +17,7 @@ type DashboardHeaderProps = {
 export function DashboardHeader({
   user,
   activeWorkspaceName,
+  selectedWorkspaceId,
   selectedWorkspaceRole,
   projectCount,
   taskCount,
@@ -100,7 +102,11 @@ export function DashboardHeader({
             </Link>
             <Link
               className="tf-btn-ghost"
-              href="/settings/billing"
+              href={
+                selectedWorkspaceId
+                  ? `/settings/billing?workspaceId=${selectedWorkspaceId}`
+                  : "/settings/billing"
+              }
             >
               Billing
             </Link>

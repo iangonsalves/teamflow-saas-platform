@@ -31,6 +31,14 @@ type PortalResponse = {
   portalUrl: string;
 };
 
+type CheckoutSyncResponse = {
+  synced: boolean;
+};
+
+type ControlAction =
+  | { label: string; plan: "PRO" | "TEAM" }
+  | { label: string; plan: null };
+
 type InvoiceSummary = {
   id: string;
   amountPaid: number;
@@ -59,6 +67,14 @@ function formatInvoiceStatus(status: string | null) {
     .join(" ");
 }
 
+function formatPlanLabel(plan: string | null | undefined) {
+  if (!plan) {
+    return "Free";
+  }
+
+  return plan.charAt(0).toUpperCase() + plan.slice(1).toLowerCase();
+}
+
 const plans = [
   {
     id: "PRO",
@@ -76,11 +92,20 @@ export function BillingShell() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { showToast } = useToast();
+  const requestedWorkspaceId = searchParams.get("workspaceId");
+  const checkoutSessionId = searchParams.get("session_id");
   const [workspace, setWorkspace] = useState<WorkspaceSummary | null>(null);
   const [subscription, setSubscription] = useState<SubscriptionSummary | null>(null);
   const [invoices, setInvoices] = useState<InvoiceSummary[]>([]);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState<string | null>(null);
+  const currentPlan = subscription?.plan ?? "FREE";
+  const controlAction: ControlAction =
+    currentPlan === "TEAM"
+      ? { label: "Current highest plan", plan: null }
+      : currentPlan === "PRO"
+        ? { label: "Upgrade to Team", plan: "TEAM" }
+        : { label: "Upgrade to Pro", plan: "PRO" };
 
   useEffect(() => {
     const token = getAccessToken();
@@ -105,22 +130,37 @@ export function BillingShell() {
           return;
         }
 
-        const firstWorkspace = workspaces[0] ?? null;
-        setWorkspace(firstWorkspace);
+        const resolvedWorkspace =
+          workspaces.find((workspaceItem) => workspaceItem.id === requestedWorkspaceId) ??
+          workspaces[0] ??
+          null;
 
-        if (!firstWorkspace) {
+        setWorkspace(resolvedWorkspace);
+
+        if (!resolvedWorkspace) {
           setSubscription(null);
           setInvoices([]);
           return;
         }
 
+        if (searchParams.get("checkout") === "success" && checkoutSessionId) {
+          await apiRequestWithToken<CheckoutSyncResponse>(
+            `/workspaces/${resolvedWorkspace.id}/billing/checkout-sync`,
+            accessToken,
+            {
+              method: "POST",
+              body: JSON.stringify({ sessionId: checkoutSessionId }),
+            },
+          );
+        }
+
         const [currentSubscription, invoiceHistory] = await Promise.all([
           apiRequestWithToken<SubscriptionSummary>(
-            `/workspaces/${firstWorkspace.id}/billing/subscription`,
+            `/workspaces/${resolvedWorkspace.id}/billing/subscription`,
             accessToken,
           ),
           apiRequestWithToken<InvoiceSummary[]>(
-            `/workspaces/${firstWorkspace.id}/billing/invoices`,
+            `/workspaces/${resolvedWorkspace.id}/billing/invoices`,
             accessToken,
           ),
         ]);
@@ -140,10 +180,20 @@ export function BillingShell() {
 
     void loadBillingState();
 
+    let refreshTimeout: ReturnType<typeof setTimeout> | null = null;
+    if (searchParams.get("checkout") === "success") {
+      refreshTimeout = setTimeout(() => {
+        void loadBillingState();
+      }, 1800);
+    }
+
     return () => {
       cancelled = true;
+      if (refreshTimeout) {
+        clearTimeout(refreshTimeout);
+      }
     };
-  }, [router]);
+  }, [checkoutSessionId, requestedWorkspaceId, router, searchParams]);
 
   useEffect(() => {
     if (errorMessage) {
@@ -282,17 +332,21 @@ export function BillingShell() {
               </button>
               <button
                 className="tf-btn-primary"
-                disabled={!workspace || isSubmitting !== null}
-                onClick={() => void handleCheckout("PRO")}
+                disabled={!workspace || isSubmitting !== null || !controlAction.plan}
+                onClick={() => {
+                  if (controlAction.plan) {
+                    void handleCheckout(controlAction.plan);
+                  }
+                }}
                 type="button"
               >
-                {isSubmitting === "PRO" ? (
+                {controlAction.plan && isSubmitting === controlAction.plan ? (
                   <>
                     <span className="tf-spinner mr-2" />
                     Starting checkout...
                   </>
                 ) : (
-                  "Upgrade to Pro"
+                  controlAction.label
                 )}
               </button>
             </div>
@@ -317,8 +371,8 @@ export function BillingShell() {
                   <p className="font-mono text-[11px] uppercase tracking-[0.24em] text-slate-500">
                     Plan
                   </p>
-                  <p className="mt-3 text-lg font-semibold text-slate-900">
-                    {subscription?.plan ?? "FREE"}
+                <p className="mt-3 text-lg font-semibold text-slate-900">
+                    {currentPlan}
                   </p>
                   <p className="mt-1 text-sm text-slate-600">
                     Current subscription plan
@@ -340,8 +394,7 @@ export function BillingShell() {
 
         {searchParams.get("checkout") === "success" ? (
           <div className="mt-6 rounded-2xl border border-[#2a9d8f]/25 bg-[#edf8f5] px-5 py-4 text-sm text-[#1f6c63]">
-            Stripe returned successfully. Once webhooks are connected with your
-            real Stripe account, subscription status updates will appear here.
+            Stripe returned successfully. The billing state is refreshing for this workspace now.
           </div>
         ) : null}
 
@@ -365,11 +418,11 @@ export function BillingShell() {
                   Current subscription
                 </p>
                 <h2 className="mt-3 text-2xl font-semibold text-slate-900">
-                  Billing control center
+                  {formatPlanLabel(currentPlan)} billing plan
                 </h2>
                 <p className="mt-2 text-sm leading-6 text-slate-600">
-                  Upgrade through checkout, manage billing in Stripe, and review
-                  the latest invoice activity from one page.
+                  Review the active workspace plan, manage billing in Stripe,
+                  and compare the available subscription tiers from one page.
                 </p>
               </div>
               <span className="rounded-full bg-[#edf8f5] px-3 py-1 text-xs font-medium uppercase tracking-[0.18em] text-[#1f6c63]">
@@ -378,7 +431,7 @@ export function BillingShell() {
             </div>
 
             <div className="mt-5 rounded-[1.75rem] bg-slate-900 p-5 text-slate-50">
-              <p className="text-xl font-semibold">{subscription?.plan ?? "FREE"}</p>
+              <p className="text-xl font-semibold">{currentPlan}</p>
               <p className="mt-2 text-sm text-slate-300">
                 Workspace: {workspace?.name ?? "No workspace loaded"}
               </p>
@@ -401,6 +454,10 @@ export function BillingShell() {
 
           <div className="grid gap-4">
             {plans.map((plan) => (
+              (() => {
+                const isCurrentPlan = currentPlan === plan.id;
+
+                return (
               <div
                 className="rounded-[2.1rem] border border-[#cfb793] bg-[#fffaf2] p-6 shadow-[0_24px_70px_rgba(15,23,42,0.12)]"
                 key={plan.id}
@@ -416,13 +473,19 @@ export function BillingShell() {
                 </p>
                 <button
                   className="mt-5 rounded-full bg-slate-900 px-5 py-3 text-sm font-medium text-white transition hover:bg-slate-700 disabled:cursor-not-allowed disabled:bg-slate-400"
-                  disabled={!workspace || isSubmitting !== null}
+                  disabled={!workspace || isSubmitting !== null || isCurrentPlan}
                   onClick={() => void handleCheckout(plan.id)}
                   type="button"
                 >
-                  {isSubmitting === plan.id ? "Starting checkout..." : `Choose ${plan.name}`}
+                  {isSubmitting === plan.id
+                    ? "Starting checkout..."
+                    : isCurrentPlan
+                      ? `Current ${plan.name} plan`
+                      : `Choose ${plan.name}`}
                 </button>
               </div>
+                );
+              })()
             ))}
           </div>
         </section>

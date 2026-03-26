@@ -395,7 +395,10 @@ export function WorkspaceDetailShell({
                 Owner: {workspace?.owner.name ?? "Unknown"} · {ownerCount} owner slot · {projects.length} active lanes.
               </p>
               <div className="mt-6 grid gap-3">
-                <Link className="tf-btn-ghost" href="/settings/billing">
+                <Link
+                  className="tf-btn-ghost"
+                  href={`/settings/billing?workspaceId=${workspaceId}`}
+                >
                   Billing
                 </Link>
                 {projects[0] ? (
