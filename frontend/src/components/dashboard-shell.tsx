@@ -446,6 +446,7 @@ export function DashboardShell() {
                 memberCount={workspaceMembers.length}
                 onLogout={handleLogout}
                 projectCount={projects.length}
+                selectedWorkspaceId={selectedWorkspaceId}
                 selectedWorkspaceRole={selectedWorkspaceRole}
                 taskCount={workspaceTaskCount}
                 user={user}

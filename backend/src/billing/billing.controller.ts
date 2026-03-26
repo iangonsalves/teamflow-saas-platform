@@ -15,6 +15,7 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import type { AuthenticatedUser } from '../auth/types/authenticated-user.type';
 import { BillingService } from './billing.service';
 import { CreateCheckoutSessionDto } from './dto/create-checkout-session.dto';
+import { SyncCheckoutSessionDto } from './dto/sync-checkout-session.dto';
 
 type StripeWebhookRequest = Request & { rawBody?: Buffer };
 
@@ -70,6 +71,22 @@ export class BillingController {
     @CurrentUser() user: AuthenticatedUser,
   ) {
     return this.billingService.createPortalSession(workspaceId, user);
+  }
+
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  @Post('workspaces/:workspaceId/billing/checkout-sync')
+  @ApiOperation({ summary: 'Sync a completed Stripe checkout session for a workspace' })
+  syncCheckoutSession(
+    @Param('workspaceId') workspaceId: string,
+    @Body() syncCheckoutSessionDto: SyncCheckoutSessionDto,
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.billingService.syncCheckoutSession(
+      workspaceId,
+      syncCheckoutSessionDto.sessionId,
+      user,
+    );
   }
 
   @Post('billing/webhooks/stripe')

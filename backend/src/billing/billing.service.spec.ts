@@ -47,6 +47,8 @@ describe('BillingService', () => {
     jest.clearAllMocks();
     originalProPrice = process.env.STRIPE_PRICE_PRO_MONTHLY;
     originalTeamPrice = process.env.STRIPE_PRICE_TEAM_MONTHLY;
+    process.env.STRIPE_PRICE_PRO_MONTHLY = 'price_pro_monthly';
+    process.env.STRIPE_PRICE_TEAM_MONTHLY = 'price_team_monthly';
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         BillingService,
@@ -78,6 +80,75 @@ describe('BillingService', () => {
       status: SubscriptionStatus.INACTIVE,
       stripeCustomerId: null,
       stripeSubId: null,
+    });
+  });
+
+  it('reconciles a stale saved plan against Stripe on subscription read', async () => {
+    workspaceAccessService.assertWorkspaceExists.mockResolvedValue(undefined);
+    workspaceAccessService.getMembershipOrThrow.mockResolvedValue({
+      role: WorkspaceRole.OWNER,
+    });
+    prismaService.subscription.findUnique.mockResolvedValue({
+      id: 'subscription-uuid-1',
+      workspaceId: 'workspace-1',
+      stripeCustomerId: 'cus_123',
+      stripeSubId: 'sub_existing',
+      plan: SubscriptionPlan.PRO,
+      status: SubscriptionStatus.ACTIVE,
+    });
+    prismaService.subscription.update.mockResolvedValue({
+      id: 'subscription-uuid-1',
+      workspaceId: 'workspace-1',
+      stripeCustomerId: 'cus_123',
+      stripeSubId: 'sub_team',
+      plan: SubscriptionPlan.TEAM,
+      status: SubscriptionStatus.ACTIVE,
+    });
+
+    jest.spyOn(service as never, 'getStripeClient').mockReturnValue({
+      subscriptions: {
+        list: jest.fn().mockResolvedValue({
+          data: [
+            {
+              id: 'sub_team',
+              created: 200,
+              status: 'active',
+              items: {
+                data: [
+                  {
+                    price: {
+                      id: 'price_team_monthly',
+                    },
+                  },
+                ],
+              },
+            },
+            {
+              id: 'sub_existing',
+              created: 100,
+              status: 'active',
+              items: {
+                data: [
+                  {
+                    price: {
+                      id: 'price_pro_monthly',
+                    },
+                  },
+                ],
+              },
+            },
+          ],
+        }),
+      },
+    } as never);
+
+    await expect(
+      service.getWorkspaceSubscription('workspace-1', currentUser),
+    ).resolves.toEqual({
+      plan: SubscriptionPlan.TEAM,
+      status: SubscriptionStatus.ACTIVE,
+      stripeCustomerId: 'cus_123',
+      stripeSubId: 'sub_team',
     });
   });
 
@@ -173,5 +244,75 @@ describe('BillingService', () => {
         }),
       }),
     );
+  });
+
+  it('syncs the plan from the Stripe subscription price id', async () => {
+    prismaService.subscription.findFirst.mockResolvedValue({
+      id: 'subscription-uuid-1',
+      workspaceId: 'workspace-1',
+      stripeCustomerId: 'cus_123',
+      stripeSubId: 'sub_existing',
+      plan: SubscriptionPlan.PRO,
+      status: SubscriptionStatus.ACTIVE,
+    });
+
+    await (service as any).syncSubscriptionFromStripeSubscription({
+      id: 'sub_team',
+      customer: 'cus_123',
+      status: 'active',
+      items: {
+        data: [
+          {
+            price: {
+              id: 'price_team_monthly',
+            },
+          },
+        ],
+      },
+    });
+
+    expect(prismaService.subscription.update).toHaveBeenCalledWith({
+      where: { id: 'subscription-uuid-1' },
+      data: {
+        stripeSubId: 'sub_team',
+        plan: SubscriptionPlan.TEAM,
+        status: SubscriptionStatus.ACTIVE,
+      },
+    });
+  });
+
+  it('syncs a completed checkout session directly from Stripe', async () => {
+    workspaceAccessService.getMembershipOrThrow.mockResolvedValue({
+      role: WorkspaceRole.OWNER,
+    });
+    prismaService.subscription.upsert.mockResolvedValue({
+      id: 'subscription-uuid-2',
+      workspaceId: 'workspace-1',
+      stripeCustomerId: 'cus_456',
+      stripeSubId: 'sub_team',
+      plan: SubscriptionPlan.TEAM,
+      status: SubscriptionStatus.ACTIVE,
+    });
+
+    jest.spyOn(service as never, 'getStripeClient').mockReturnValue({
+      checkout: {
+        sessions: {
+          retrieve: jest.fn().mockResolvedValue({
+            metadata: {
+              workspaceId: 'workspace-1',
+              plan: SubscriptionPlan.TEAM,
+            },
+            customer: 'cus_456',
+            subscription: 'sub_team',
+          }),
+        },
+      },
+    } as never);
+
+    await expect(
+      service.syncCheckoutSession('workspace-1', 'cs_test_123', currentUser),
+    ).resolves.toEqual({ synced: true });
+
+    expect(prismaService.subscription.upsert).toHaveBeenCalled();
   });
 });

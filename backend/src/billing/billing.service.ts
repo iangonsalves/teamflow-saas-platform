@@ -6,6 +6,7 @@ import {
 } from '@nestjs/common';
 import {
   Prisma,
+  Subscription,
   SubscriptionPlan,
   SubscriptionStatus,
   WorkspaceRole,
@@ -54,11 +55,15 @@ export class BillingService {
     });
 
     if (subscription) {
+      const syncedSubscription = await this.reconcileSubscriptionWithStripe(
+        subscription,
+      );
+
       return {
-        plan: subscription.plan,
-        status: subscription.status,
-        stripeCustomerId: subscription.stripeCustomerId,
-        stripeSubId: subscription.stripeSubId,
+        plan: syncedSubscription.plan,
+        status: syncedSubscription.status,
+        stripeCustomerId: syncedSubscription.stripeCustomerId,
+        stripeSubId: syncedSubscription.stripeSubId,
       };
     }
 
@@ -132,8 +137,8 @@ export class BillingService {
     const session = await stripe.checkout.sessions.create({
       mode: 'subscription',
       customer: stripeCustomerId,
-      success_url: `${baseUrl}/settings/billing?checkout=success`,
-      cancel_url: `${baseUrl}/settings/billing?checkout=cancelled`,
+      success_url: `${baseUrl}/settings/billing?workspaceId=${workspaceId}&checkout=success&session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${baseUrl}/settings/billing?workspaceId=${workspaceId}&checkout=cancelled`,
       line_items: [
         {
           price: priceId,
@@ -193,7 +198,7 @@ export class BillingService {
     const baseUrl = process.env.FRONTEND_URL ?? 'http://localhost:3000';
     const session = await stripe.billingPortal.sessions.create({
       customer: subscription.stripeCustomerId,
-      return_url: `${baseUrl}/settings/billing`,
+      return_url: `${baseUrl}/settings/billing?workspaceId=${workspaceId}`,
     });
 
     await this.auditLogsService.logEvent({
@@ -210,6 +215,39 @@ export class BillingService {
     return {
       portalUrl: session.url,
     };
+  }
+
+  async syncCheckoutSession(
+    workspaceId: string,
+    sessionId: string,
+    user: AuthenticatedUser,
+  ) {
+    const membership = await this.workspaceAccessService.getMembershipOrThrow(
+      workspaceId,
+      user.sub,
+    );
+
+    if (
+      membership.role !== WorkspaceRole.OWNER &&
+      membership.role !== WorkspaceRole.ADMIN
+    ) {
+      throw new ForbiddenException(
+        'Only workspace owners and admins can manage billing.',
+      );
+    }
+
+    const stripe = this.getStripeClient();
+    const session = await stripe.checkout.sessions.retrieve(sessionId);
+
+    if (session.metadata?.workspaceId !== workspaceId) {
+      throw new ForbiddenException(
+        'Checkout session does not belong to this workspace.',
+      );
+    }
+
+    await this.syncSubscriptionFromCheckoutSession(session);
+
+    return { synced: true };
   }
 
   async listInvoices(
@@ -352,11 +390,13 @@ export class BillingService {
     }
 
     const status = this.mapStripeStatus(stripeSubscription.status);
+    const plan = this.mapPlanFromStripeSubscription(stripeSubscription);
 
     await this.prisma.subscription.update({
       where: { id: existingSubscription.id },
       data: {
         stripeSubId: stripeSubscription.id,
+        plan,
         status,
       },
     });
@@ -368,9 +408,87 @@ export class BillingService {
       action: 'billing.subscription_synced',
       metadata: {
         stripeSubscriptionId: stripeSubscription.id,
+        plan,
         status,
       },
     });
+  }
+
+  private async reconcileSubscriptionWithStripe(
+    subscription: Subscription,
+  ): Promise<Subscription> {
+    if (!subscription.stripeCustomerId) {
+      return subscription;
+    }
+
+    try {
+      const stripe = this.getStripeClient();
+      const subscriptionList = await stripe.subscriptions.list({
+        customer: subscription.stripeCustomerId,
+        status: 'all',
+        limit: 10,
+      });
+      const stripeSubscription = this.selectCurrentStripeSubscription(
+        subscriptionList.data,
+      );
+
+      if (!stripeSubscription) {
+        return subscription;
+      }
+
+      const nextPlan = this.mapPlanFromStripeSubscription(stripeSubscription);
+      const nextStatus = this.mapStripeStatus(stripeSubscription.status);
+      const nextStripeSubId = stripeSubscription.id;
+
+      if (
+        subscription.plan === nextPlan &&
+        subscription.status === nextStatus &&
+        subscription.stripeSubId === nextStripeSubId
+      ) {
+        return subscription;
+      }
+
+      return this.prisma.subscription.update({
+        where: { id: subscription.id },
+        data: {
+          plan: nextPlan,
+          status: nextStatus,
+          stripeSubId: nextStripeSubId,
+        },
+      });
+    } catch {
+      return subscription;
+    }
+  }
+
+  private selectCurrentStripeSubscription(
+    subscriptions: Stripe.Subscription[],
+  ): Stripe.Subscription | null {
+    if (subscriptions.length === 0) {
+      return null;
+    }
+
+    const statusRank: Record<string, number> = {
+      active: 4,
+      trialing: 3,
+      past_due: 2,
+      incomplete: 1,
+      unpaid: 1,
+      paused: 1,
+      canceled: 0,
+      incomplete_expired: 0,
+    };
+
+    return [...subscriptions].sort((left, right) => {
+      const statusDelta =
+        (statusRank[right.status] ?? -1) - (statusRank[left.status] ?? -1);
+
+      if (statusDelta !== 0) {
+        return statusDelta;
+      }
+
+      return (right.created ?? 0) - (left.created ?? 0);
+    })[0] ?? null;
   }
 
   private getStripeClient() {
@@ -411,6 +529,22 @@ export class BillingService {
     }
 
     return null;
+  }
+
+  private mapPlanFromStripeSubscription(
+    stripeSubscription: Stripe.Subscription,
+  ): SubscriptionPlan {
+    const activePriceId = stripeSubscription.items.data[0]?.price?.id;
+
+    if (activePriceId === process.env.STRIPE_PRICE_PRO_MONTHLY) {
+      return SubscriptionPlan.PRO;
+    }
+
+    if (activePriceId === process.env.STRIPE_PRICE_TEAM_MONTHLY) {
+      return SubscriptionPlan.TEAM;
+    }
+
+    return SubscriptionPlan.FREE;
   }
 
   private mapStripeStatus(status: Stripe.Subscription.Status) {

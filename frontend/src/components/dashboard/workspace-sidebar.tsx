@@ -201,7 +201,11 @@ export function WorkspaceSidebar({
         <div className="mt-4 grid gap-3">
           <Link
             className="tf-btn-secondary w-full border-white/25 bg-white text-slate-900 hover:border-white/35"
-            href="/settings/billing"
+            href={
+              selectedWorkspaceId
+                ? `/settings/billing?workspaceId=${selectedWorkspaceId}`
+                : "/settings/billing"
+            }
           >
             Open billing
           </Link>
