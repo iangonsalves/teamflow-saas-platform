@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { BackendWakeProvider } from "@/components/backend-wake-provider";
 import { ToastProvider } from "@/components/ui/toast-provider";
 import "./globals.css";
 
@@ -15,7 +16,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className="antialiased">
-        <ToastProvider>{children}</ToastProvider>
+        <BackendWakeProvider>
+          <ToastProvider>{children}</ToastProvider>
+        </BackendWakeProvider>
       </body>
     </html>
   );
