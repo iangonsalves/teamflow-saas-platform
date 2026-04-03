@@ -9,10 +9,8 @@ I built TeamFlow as a full-stack SaaS workspace platform for teams that need str
 - API Docs: https://teamflow-saas-platform.onrender.com/docs
 
 ### Login Credentials
-username: ian@example.com
-
-password: password123
-
+- **Username:** ian@example.com
+- **Password:** password123
 
 The frontend is the main product link. The backend runs on Render free tier, so the first request can take a few seconds while the service wakes up.
 
